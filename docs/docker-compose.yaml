@@ -1,51 +1,105 @@
+# docker-compose.yaml describes several containers that run together as one application.
+# Start everything with `docker compose up -d`; stop and remove it with `docker compose down`.
+# Here: two databases (MySQL, PostgreSQL) and two .NET microservices that use them.
+
+# Compose file format version. Modern Docker Compose (v2) ignores this line and prints an
+# "obsolete" warning; it is kept for older docker-compose v1 installs.
 version: "3.8"
+# Every container to run is listed under "services". The key (e.g. "mysql-container") is the
+# service name, which other containers can also use as a hostname on the shared network.
 services:
+
+ # ---------------------------------------------------------------------------
+ # MySQL database used by the Products microservice.
+ # ---------------------------------------------------------------------------
  mysql-container:
+  # Use the official MySQL image, pinned to version 8.3.0 so builds are repeatable.
   image: mysql:8.3.0
+  # Environment variables passed into the container.
   environment:
+   # Password for MySQL's "root" user. The MySQL image requires this on first start.
    - MYSQL_ROOT_PASSWORD=admin
+  # Port mapping "HOST:CONTAINER": port 3306 on your machine forwards to MySQL's 3306 inside,
+  # so tools on your PC (e.g. MySQL Workbench) can connect at localhost:3306.
   ports:
    - "3306:3306"
+  # Mount the local ./mysql-init folder (relative to this file) into the container.
+  # The MySQL image runs any .sql/.sh scripts in /docker-entrypoint-initdb.d the FIRST time
+  # the database is created - typically used to create tables and seed data.
   volumes:
    - ./mysql-init:/docker-entrypoint-initdb.d
+  # Attach to the shared network defined at the bottom, so the microservices can reach it.
   networks:
    - ecommerce-network
+  # Give the container this hostname. The products service connects using it (see MYSQL_HOST).
   hostname: mysql-host-productsmicroservice
 
+ # ---------------------------------------------------------------------------
+ # Products microservice (the .NET API that the Dockerfile in this folder builds).
+ # ---------------------------------------------------------------------------
  products-microservice:
+  # A prebuilt image pulled from Docker Hub (account "harshamicroservices", tag v1.0).
+  # It is NOT built from the local Dockerfile; to build locally you would use `build: .` instead.
   image: harshamicroservices/ecommerce-products-microservice:v1.0
+  # Environment variables, written in "KEY: value" map style (equivalent to the "- KEY=value" list style).
   environment:
+   # Where the database is: the MySQL container's hostname set above. This overrides the
+   # Dockerfile's default of "localhost", which inside a container would point at itself.
    MYSQL_HOST: mysql-host-productsmicroservice
+   # Must match MYSQL_ROOT_PASSWORD on the MySQL service.
    MYSQL_PASSWORD: admin
+  # Expose the API: localhost:8080 on your machine -> port 8080 in the container (the .NET 8 default).
   ports:
    - "8080:8080"
+  # Same network as MySQL, so the hostname above resolves.
   networks:
    - ecommerce-network
 
 
+ # ---------------------------------------------------------------------------
+ # PostgreSQL database used by the Users microservice.
+ # ---------------------------------------------------------------------------
  postgres-container:
+  # Official PostgreSQL image, version 16.1.
   image: postgres:16.1
   environment:
+   # Name of the superuser account to create.
    - POSTGRES_USER=postgres
+   # Password for that account.
    - POSTGRES_PASSWORD=admin
+   # Database created automatically on first start.
    - POSTGRES_DB=eCommerceUsers
+  # localhost:5432 on your machine -> PostgreSQL's default port 5432 in the container.
   ports:
    - "5432:5432"
+  # Like MySQL: scripts in ./postgres-init run once, when the database is first created.
   volumes:
    - ./postgres-init:/docker-entrypoint-initdb.d
   networks:
    - ecommerce-network
 
+ # ---------------------------------------------------------------------------
+ # Users microservice.
+ # ---------------------------------------------------------------------------
  users-microservice:
+  # Another prebuilt image from Docker Hub.
   image: harshamicroservices/ecommerce-users-microservice:v1.0
   environment:
+   # No custom hostname is set for Postgres, so the service name "postgres-container"
+   # is used as the hostname - Compose's built-in DNS resolves it on the shared network.
    - POSTGRES_HOST=postgres-container
+   # Must match POSTGRES_PASSWORD on the Postgres service.
    - POSTGRES_PASSWORD=admin
+  # localhost:9090 on your machine -> port 9090 in the container (the app must listen on 9090).
   ports:
    - "9090:9090"
   networks:
    - ecommerce-network
 
+# Networks used by the services above.
 networks:
+ # A user-defined network shared by all four containers. On it, containers find each other
+ # by service name or hostname, which the default per-container setup doesn't give you as reliably.
  ecommerce-network:
+  # "bridge" = a private virtual network on this single Docker host (the standard driver).
   driver: bridge
