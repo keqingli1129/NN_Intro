@@ -1,0 +1,404 @@
+You've tried to understand how neural networks actually learn, right? You open
+a textbook, you click on a video, and within minutes, you're drowning. Back
+propagation, stochastic gradient descent, the chain rule. It feels like an impossibly
+complex blackbox, a machine that just performs magic, and you're told to just
+accept that it works. Here's the secret. You've been taught this the wrong way
+around. The entire engine that powers all of modern AI is built on just a few simple,
+incredibly intuitive ideas. Here's the first one. Idea number one,
+the valley. How do you find the bottom of a valley when you're stuck in a thick fog?
+And idea number two, the blame game. How do you figure out who to blame when a
+team project goes wrong? Once you truly grasp these two concepts,
+all of that scary math suddenly clicks into place. It's not a barrier. It's just the
+language we use to describe a logic you already understand. So, here's my
+promise to you. Give me 40 minutes and you will master how neural networks learn.
+We will go step by step building the entire learning process from scratch. No
+skip steps, no magic. By the end of this video, you will have a deep foundational
+understanding of neural networks. You won't just know the buzzwords. You will finally get that aha moment.
+Gradient Descent
+All right, let's get straight to the code. Look at this. It's an input function, an
+output, and a simple loop that runs a 100 times. This tiny loop right here,
+this is the beating heart of every single AI system you have ever heard of.
+Chat GPT, midjourney, self-driving cars, they all run on this exact logic.
+So, what is it doing? Every neural network is trying to get
+better by minimizing its error. That's the gap between its guess and the right answer. This algorithm
+is the engine that drives that error down to zero. And the intuition is dead
+simple. [Music] Remember that foggy hill I mentioned?
+You're lost. You need to get to the bottom of the valley, but you can only see your own two feet. What do you do?
+You don't need to see the whole map. You just one feel the slope right where
+you're standing. Two, take a small step in the steepest downhill direction
+and three repeat. That's it. That's gradient descent. You
+just feel the slope, take a step, and do it again and again until you reach the bottom where the ground is flat. Our
+algorithm does the exact same thing, but with math.
+Let's make this crystal clear with an example. Imagine our valley is this perfect u shape described by the
+function you see here fx= x^2. The gradient which is just a fancy word for
+the slope is found with a derivative. Check out this formula. For x^2 the derivative is just 2x. This is our slope
+detector. Think about it. If we're standing at x= 3, the slope is 2 * 3 which is 6. It's a
+positive slope, which means downhill is to the left. Now, what if we're at x=
+-2? The slope is 2 * -2, which is -4. A
+negative slope means downhill is to the right. And what happens at x= 0? The
+slope is 0. The ground is flat. You've arrived.
+Now, look at the update rule. This little formula just automates the whole process. it subtracts the slope forcing
+x to always move downhill towards the minimum. Let's watch it in action. We'll
+start at a random spot, say x= 3, and we'll use a small step size, which we call the learning rate of 0.1.
+Okay, check out this table. We are going to walk through this together step by step.
+First, at iteration zero, our current x is 3. The error, which is x^2, is a huge
+9. The gradient 2x is 6. So the new x is our old x 3 minus our
+step size 0.1 * that gradient of 6. 3 - 0.6 is 2.4. That's our new position. See
+how that works. Now for iteration 1, we start at 2.4. The error has already dropped to 5.76. We repeat the process.
+Calculate the new gradient. Take another small step. And we land at 1.92.
+I'm not going to go through every single line, but you can see the results here. Look at that. We started at x= 3 with a
+huge error of 9. After just a few steps, it's plummeting. The algorithm is literally sliding down the curve of the
+parabola. But here comes the plot twist. Gradient descent has tunnel vision. It
+only sees the slope directly under its feet. What if the landscape isn't a simple valley? What if it's a function
+like this one with lots of bumps and dips? As you can see on the graph, there's a
+true global minimum, the deepest point, but there's also a shallower trap, a local minimum. So, if you start at x=
+0.5, the algorithm slides into the shallow valley and gets stuck.
+It found an answer, but not the best answer. But if you start at x=0.5,
+[Music] it finds the true deep valley perfectly.
+Same algorithm, different starting points, wildly different results.
+This raises a terrifying question. A neural network has millions of parameters, creating an error landscape
+with billions of these traps. How could this possibly work for GPT4?
+Here's the surprising, almost unbelievable answer. For huge neural networks, it almost
+doesn't matter. This is the surprising luck of high dimensions. It turns out that most of those local minima, those
+traps are actually pretty good solutions and the truly bad traps are incredibly rare. It's one of the luckiest
+coincidences in the history of AI and we're still trying to fully understand why.
+Empirically, gradient descent just works.
+Now you understand the core engine, but so far our valley only has one dimension. We can only move left or
+Partial Derivatives
+right. A real neural network is like a massive soundboard with a million knobs to tune. How do you adjust all of them
+at once to find the perfect sound? How do you figure out the slope in a million different directions simultaneously?
+The answer is surprisingly elegant. You don't.
+Instead, you figure out the slope for each knob individually as if it were the only one you were turning. You focus on
+one knob at a time. Listen to its effect. adjust it and move to the next.
+This is the core intuition behind one of the most important tools in machine learning, the partial derivative.
+[Music] When our function has multiple variables, we can't just ask for the slope. We need to specify which
+direction we're talking about. This is where we use the partial derivative symbol. Look at this. When you see this
+first formula, it's asking for the slope in the x1 direction only. And for the other direction, the second formula asks
+for the slope in the x2 direction only. Simple as that. Let's upgrade our value
+to a 3D example with this function. Check it out. f of x1 x2 = x1 2 + 2 * x2
+2. This creates a beautiful oval-shaped bowl. The lowest point, as you can probably guess, is right at the origin
+at 0 0. So, how do we calculate these partial derivatives? Here is the one magic rule you need to remember.
+To find the partial derivative with respect to one variable, you treat all other variables as if they are just
+constant numbers. That's it. Let's try it. Look at our function again. We want
+to find the partial derivative with respect to x1. First, we pretend x2 is frozen. That means the whole term 2 * x2
+just becomes a constant. And what happens when we take the derivative of a constant? It disappears. It goes to
+zero. So all that's left is x1^ 2. And the derivative of that is just 2x1.
+That's our answer. Easy, right? Now, let's do the other one. Let's find
+the partial derivative with respect to x2. This time, we pretend x1 is frozen.
+The x1 squar term becomes a constant, so it vanishes. We're only left with 2 *
+x2, and the derivative of that is 4x2. [Music]
+You've just calculated a multi-dimensional gradient. With this tool, our gradient descent algorithm gets a simple upgrade. Instead of one
+update rule, we now have one for each variable. And here's the key. We apply them all at the same time.
+Check out the algorithm. It's almost the same as before. For every iteration, we calculate the gradient for x1. We
+calculate the gradient for x2. And then we update both x1 and x2 using their own gradients. Let's navigate our 3D bowl.
+Our function is x1 2 + 2 x2 2. We'll start at a random point. Let's say 32.
+And we'll use a learning rate of 0.1. Let's see. The initial error at our
+starting point is 3 ^ 2 + 2 * 2 ^ 2. That's 9 + 8. A big error of 17.
+Let's watch the algorithm work. Okay, check out this table. We are going
+to walk through this together step by step. At iteration 0, our starting point is x1= 3, x2= 2, and the error is 17.
+Now for the gradients, remember our formulas. The gradient for x1 is 2 x1.
+So that's 2 * 3, which is 6. The gradient for x2 is 4 x2. So that's 4 *
+2, which is 8. Now we update. The new x1 is the old one
+3 minus our learning rate 0.1 times its gradient 6. That's 3 minus 0.6 giving us
+2.4. For x2, it's the old value 2 minus 0.1 * its gradient 8. That's 2 - 0.8
+giving us 1.2. Our new position after one step is 2.4
+1.2. Now for the next iteration, we do the same thing.
+I'm not going to repeat all the details, but you can see the process in the table. The error keeps dropping.
+Look at that beautiful convergence. And that very first step, the gradient told the algorithm how to move in both the x1
+and x2 directions, and it slashed the error almost in half in one go. As it
+gets closer to the bottom, the slopes get smaller, so it automatically takes smaller, more careful steps. X1 and X2
+both spiral down towards zero perfectly finding the minimum of our 3D bowl.
+This is it. This is the fundamental technique for training a neural network. We treat every single weight as its own
+knob. We calculate its partial derivative, its individual contribution to the total error, and then we nudge it
+slightly in the right direction. Scale this up from two knobs to 2 million, and
+you have modern machine learning. But this raises a new much more subtle
+The Chain Rule
+problem. In our bowl example, X1 and X2 directly affected the final error. It
+was simple. But in a deep neural network, a weight in the very first layer doesn't directly touch the final
+error. Its influence travels through a long complex chain of calculations. How
+do you calculate the blame for a single knob when its effect is buried 20 layers
+deep? This is the single biggest problem in
+deep learning and its solution is one of the most elegant ideas in all of mathematics, the chain rule.
+Look at this formula. It's so simple. But this simple formula is the master
+stroke. It's what makes deep learning possible. And the intuition behind it, it's
+literally a blame game. Imagine your team's final presentation fails. That's
+the error. To find out why, you trace the problem backward. First, the presentation was bad, which happened
+because the slides were confusing. Let's say the slides get 50% of the blame for the bad presentation.
+And the slides were confusing because the data analysis was flawed. We'll say the analysis was 80% to blame for the
+bad slides. And that was because the initial data collection was sloppy.
+Let's say that gets 90% of the blame for the flawed analysis. So to find out how
+much the initial data collector is responsible for the final failed presentation, you just multiply the
+blame at each step. 90% * 80% * 50%
+equals 36%. The chain rule does exactly this. It
+multiplies the influence at each link in the chain to find the total impact of a variable far far away. Let's see this
+mathematical blame game in action. Look at this beast of a function on the screen. This looks intimidating, right?
+But we can break it down. First, we calculate a variable U, which is 2 * 1 +
+time 2. Then we calculate V, which uses U in its own formula. And finally the
+result f is just v cubed. You can see the chain of influence clearly in this
+diagram. x1 and x2 influence u which influences v which finally influences f.
+Okay. Let's find the derivative of f with respect to x1 by tracing the blame.
+Look at the table here. We're going to walk through this step by step. Step one, how much does f blame v? Well, f= v
+cubed. Using the power rule, the derivative is just 3 v^ 2. Simple
+enough. Step two. How much does v blame u? The
+function for v is u ^2 + 3 * 2^ 2. When we're taking the derivative with respect
+to u, we treat x2 as a constant. So the derivative is just 2 u. Step three, how
+much does u blame time 1? The function is u = 2 * 1 + time 2. The derivative
+here is just 2. So what's the total blame? We just multiply everything
+together. As the formula shows, it's 3 v ^ 2 * 2 u * 2, which gives us 12 u v^
+squared. And that's our gradient for time 1. Now for the derivative with
+respect to x2, it's trickier. Why? Because x2 influences v in two ways.
+Indirectly through u, but also directly. You can see both paths in this new diagram. The total blame is just the sum
+of the blame from all paths. Let's break this down using the table. The overall derivative is the derivative of f with
+respect to v time the derivative of v with respect to x2.
+We already know the first part is 3v ^2. So we just need to find the total derivative of v with respect to x2.
+First the indirect path through u. The chain rule tells us to multiply the derivative of v with respect to u by the
+derivative of u with respect to x2. That's 2 u * 1, which is just 2 u. Next,
+the direct path. This comes from the 3x2 term in the formula for v. The derivative of that 6 x2. So the total
+derivative of v with respect to x2 is just the sum of both paths. 2 u + 6 x2.
+[Music] And our final result for the gradient,
+we just multiply it all together. 3v ^2 * the quantity 2 u + 6 x2.
+And just like that, the chain rule has untangled that complex nested function for us. Now look what we can do. Check
+out this code snippet. We can plug these gradients we just found right into our algorithm. For a 100 iterations, we
+calculate the blame for each variable, grad x1 and grad x2. And then we nudge each variable in the right direction
+using our learning rate. This is the key. The chain rule gives us
+a systematic way to find the gradient for any variable no matter how deeply it's buried inside a complex function.
+This is the final piece of the puzzle. One, we know how to go downhill using gradient descent. Two, we know how to
+find the slope for each individual knob using partial derivatives. and three. And now we can trace blame through a
+long chain using the chain rule. [Music]
+We have all the mathematical tools we need. Now it's time to stop playing with abstract functions.
+[Applause] Let's use these tools to build our very first functioning AI brain and watch it
+Forward Pass & Loss
+actually learn right before your eyes. So what even is a neural network? Forget
+the hype. Forget the sci-fi. It's just a collection of simple functions called neurons organized in layers. That's
+really it. Each neuron is just a tiny calculation. Nothing magical. Think of
+something as simple as f of a= a + b^ 2. We stack them in layers, kind of like an
+assembly line. This creates what we call a forward pass, a one-way flow of information, starting from our data and
+ending with an answer. You can see it in this diagram. Information moves from the inputs
+through layer 1, then layer 2 to the final answer. So, let's build one right
+now. Here's the architecture for our very first AI brain. Our network has two
+inputs, two hidden neurons in the middle, and one final output neuron.
+To make it work, it has five tunable knobs or weights which you can see here as W1 through W5.
+Look at these formulas. This is the exact math our brain will use.
+The first hidden neuron H1 is calculated using this first formula. The second one
+H2 uses the second formula. And finally, the output neuron combines the results
+from H1 and H2 to produce our final prediction. The iteration shows how all these pieces
+are connected. Now, let's give our new brain a task. We want it to learn a new function.
+Specifically, this one f of x1 x2 = 2x1^2 + 3x2. To do that, we'll collect
+three training examples. You can see them in this table. For an input of 3,
+2, the true output should be 24. And you can see how we got that. 2 * 3^ 2 + 3 *
+2 that's 18 + 6 which is 24. We did the same for the other two examples. Okay,
+let's get set up. Right now, our network is an untrained
+brain. It's a blank slate. We have our training examples and we have the architecture we just designed. The
+weights are what the network uses to learn. But to start, we just pick some random numbers. Let's just use these
+initial weights. W1 is 1, W2 is 2, and so on.
+This next step is called the forward pass. We're just going to feed our inputs through the network and see what
+comes out the other end. There's no learning happening yet. This is just pure calculation. Let's look at the
+results. Remember, our weights are set to 1 2 1 1, and 0. The formulas are on
+the left. Okay, let's walk through this entire process together, step by step. For the first example, our input is 3,
+2, and the true answer we're hoping for is 24. First, let's calculate h1. The
+formula is x1 + w1 * x2 all squared.
+So that's 3 + 1 * 2, which is 5. 5^ 2 is 25. So h1 is 25. Next, h2. The formula
+is w2 * x1 * x2. That's 2 * 3 * 2, which gives us 12.
+And finally, our predicted output y. We combine h1 and h2 using our other weights. The formula is w3 * h1 + w4 *
+h2 + w5. So that's 1 * 25 + 1 * 12 + 0,
+which gives us a final prediction of 37. The true answer was 24. Our network
+guessed 37. The difference is 13. Now that we've done the first one, the rest
+are similar. For the second example with input 1 14, the network predicts 33. The
+real answer is 14. So it's off by a whopping 19. For the last one, it's a bit closer. It predicts 13 when the
+answer is 11 for a difference of just two. Ouch. Not great. For that second
+example, it was off by a massive 19 points. But how do we quantify this
+failure? We need a single number that tells us overall how wrong our network is.
+We can't just add up the differences because a negative 19 and a positive 19 would cancel each other out, making it
+look like the network is perfect when it's actually terrible. The solution, we square the differences. Here's why
+squaring works so well. First, it makes every single error positive. No more canceling out. That error of -3 when
+squared becomes a positive 169. Second, and this is really important, it punishes big mistakes.
+A small error of two gets a penalty of four. But that huge error of 19, it gets a massive penalty of 361.
+So let's calculate the total squared error. We take each of our differences, square them, and add them up. That's
+-3^2 +9 2 + -2 2, which is 169 + 361 +
+4. Our total squared error is 534.
+There it is. 534. That is our antagonist, our enemy. Our goal for the
+rest of this video is to make this number 534 as close to zero as possible. We've
+officially completed the forward pass. Our network has made its first terrible predictions, and now we've measured its
+total failure.
+Backpropagation
+Now for the aha moment. We're going to take all the tools we've learned, gradient descent, partial derivatives,
+and the chain rule, and unleash them on this network. Remember the blame game with a chain
+rule? That whole idea of tracing responsibility back through a complex chain of events? And remember that crazy
+nested function we used as an example? This one right here. Here is the single
+most important insight of this entire video. [Music]
+A neural network is just a giant nested
+function. That's it. That's the whole secret. Look at this comparison. Math functions have
+nested operations like f of g of h of x. Neural networks have layered operations like layer 2 of layer 1 of the inputs.
+It's the same structure. For our math functions, the variables we controlled were x1 and x2. Our goal was to find the
+values for them that minimize the function's output. But for a neural network, what are the variables? What
+are we trying to minimize the error of? This raises the most critical question.
+What are the knobs we are allowed to tune in our neural network? What are the variables? Is it the inputs x1 and x2?
+No, absolutely not. The inputs are the data we're given. We can't change the fact that we were given the input 3, 2.
+That's the problem we have to solve. We can't just change the problem. The only
+things we have control over. The only knots we can turn are the weights. W1,
+W2, W3, W4, and W5.
+This is the breakthrough. Let's look at that comparison again, but for real this time. In our math problems, we
+controlled X1 and X2 to minimize the function. In our neural network, we control the weights W1, W2, W3, W4, and
+W5 to minimize the error. We're not trying to find the best inputs. We're trying to find the best weights that
+turn the inputs into the correct outputs.
+And we already know exactly how to do this. We use gradient descent to find the values of our variables that minimize a function's output. The
+process is identical. It's time to play the blame game.
+Let's focus on that first terrible prediction. You can see the crime scene laid out here. The input was 3, 2. The
+target was 24, but our network predicted 37. The error was a massive 169. Let's
+start the investigation with our first suspect W5. Its path to the error is short and direct. As the diagram shows,
+the error comes from the prediction, and the prediction is directly influenced by W5. [Applause]
+So, how do we find out how much W5 is to blame? We use the chain rule. Look at this formula. The derivative of the
+error with respect to W5 is the derivative of the error with respect to the prediction multiplied by the derivative of the prediction with
+respect to W5. Let's do this step by step. First, the derivative of the error with
+respect to the prediction. The error formula is y - y^ 2. So its derivative
+is 2 * y - y. Plugging in our numbers, that's 2 * 37 - 24, which gives us 26.
+Second, the derivative of the prediction with respect to W5. The prediction is W3
+* H1 + W4 * H2 + W5. So the derivative with respect to W5 is just 1. The total
+blame for W5, it's 26 * 1. 26.
+Now for a tougher suspect, W1. It's buried much deeper. Its path to the air
+is longer. The error comes from the prediction which comes from H1 which is affected by W1. This means more chain
+rule steps. Here's the longer formula. We need to
+find the derivative of the error with respect to W1. Let's walk through it. First, the derivative of the error with
+respect to the prediction. Wait a second. We already calculated this. It's 26. We
+don't need to do it again. Next, the derivative of the prediction with respect to H1. Looking at the formula,
+that's just W3, which has a value of 1. Finally, the derivative of H1 with respect to W1. The formula for H1 is X1
++ W1 X2 2. Using the chain rule on this little piece, the derivative comes out
+to 2 * X1 + W1 X2 * X2.
+Plugging in the numbers, that's 2 * 3 + 1 * 2 * 2, which is 2 * 5 * 2, giving us
+20. So, the total blame for W1, it's 26 * 1
+* 20. That's a whopping 520. [Applause]
+Now, stop. Look at what we just did. Look closer. Here are the two blank calculations we just performed. Do you
+see it? the term for the derivative of the error with respect to the prediction that
+value of 26 it's in both calculations. [Music]
+This is the multi- trillion dollar trick that makes deep learning efficient. We don't recalculate everything from
+scratch for every single weight. We calculate the error gradient once at the very end and then we propagate it
+backwards reusing calculations every step of the way. This is back propagation. It's not magic. It's just
+being clever and not redoing work you've already done.
+We can systematically find the blame for every single weight. Look at these formulas. We calculate that first error
+term, the derivative with respect to y prred, and then we just keep multiplying it backwards through the network. We calculate the gradient for the output
+weights. Then we use those results to help calculate the gradients for the hidden layer. And then use those to
+calculate the gradients for the hidden layer weights. You can see the flow in these diagrams. The forward pass
+computes the output with data flowing from left to right. Then the backward pass computes the gradients with the
+error signal flowing from right to left propagating backwards.
+So here are all the calculations in one place. We start with that initial gradient of 26. We use it to find the
+blame for W5, W4 and W3. Then we propagate that blame back to find the
+blame for H1 and H2. And finally use that to find the blame for W2 and W1.
+It's a beautiful cascade of reused information. Okay, we have our gradients. We have the exact blame for
+each of our five knobs. Now we just take one step of gradient descent. We'll use
+a tiny learning rate of 0.001. 0001. The update rule is simple. The new weight is
+the old weight minus the learning rate times the gradient. Very good. Look at this table for W5.
+The old value was 0. The new value is 0 minus our learning rate * 26, which is.26.
+For W4, the old value is 1. We subtract the learning rate times its gradient of 312 and we get.9688.
+We do this for every single weight. That's it. The learning has happened. We
+played the blame game and we commanded each weight to adjust itself.
+But did it work? This is the moment of truth. Let's do
+another forward pass, but this time with our new updated weights. Let's calculate
+step by step. H1 is now 3 +.948 * 2^ 2ar
+which gives us about 23.97. H2 is 1.9844
+* 3 * 2 which is about 11.91. And finally the new prediction. We plug
+in all our new weights and new hidden values and we get a final prediction of 33.95.
+Let's compare. Before
+learning, our prediction was 37. After just one update, it's 33.95.
+The target is 24. We were 13 units off, and now we're only
+about 10 units off. Yes, it worked. The prediction moved from 37 down to 3395.
+It got closer to the target of 24. The error got smaller. This is not a guess. This is not magic.
+This is intelligence emerging directly from mathematics. By following the chain of blame backwards and nudging our
+parameters downhill, the network learns automatically.
+Repeat this process a thousand times and it will get even closer. A million times and it will be nearly perfect.
+[Music] But hang on, think about what we just
+Batch Learning
+did. We trained our network on one single example. The case where 32 should
+equal 24. That's like studying for a final exam by memorizing the answer to a
+single practice question. You might ace that one question if it shows up, but you haven't really learned the concept.
+You'll fail the actual test. To become truly intelligent, our network can't just memorize one data point. It needs
+to find the underlying pattern that works for all of our examples. So the next logical question is how do you
+learn from the entire crowd of data at once? There are two main strategies for this.
+On one hand you have online learning. This is what we just did. You look at one example, you calculate the blame and
+you update the weights immediately. Then you move on to the next example. On the other hand, there's batch learning. Here
+you look at all the examples first. You calculate the blame for each one. Then you add up all the blame from everyone.
+and only then do you update the weights just once at the very end. Check out how the algorithms look side by side. The
+online learning formula loops through each example and updates the weights inside the loop. It happens immediately.
+But the batch learning formula is different. It loops through all the examples just to add up the gradients into one big total gradient. The weight
+update only happens once outside the loop at the very end. You could say online learning is impulsive. It learns
+from one example and immediately changes its mind. Batch learning is more deliberate. It listens to the opinion of
+every single example before making a collective democratic decision. So let's try it. Let's perform one update using
+batch learning and see what happens. We'll start from our original dumb weights. W1= 1, W2= 2 and so on. Okay,
+step one is the forward pass for all of our examples. We have to see what our dumb network predicts for everyone. Look
+at this table. We already did the first example. 32 and got a prediction of 37 which had a squared error of 169. Now we
+do the same for our other examples. For 1 14 the prediction is 33 giving a massive error of 361. And for 21 the
+prediction is 13 with an error of 4. The total error across our whole data set is
+534. Pretty bad. All right. Step two. Calculate the gradients for all the
+examples. We play the blame game for each data point just like we did before. But here's the crucial difference. We
+don't update the weights yet. We just calculate the blame and put it in a table. For example one, we already know
+the gradients. $520 for W1, 156 for W2, and so on. We just repeat that process
+for examples 2 and 3. Now for step three, the part that makes
+batch learning special. We sum the blame and update just once. Look at the table.
+To get the total blame for 1 he1, we just add up its column. 520 + 380 + 24
+gives us a total gradient of 924. We do this for every weight. For one2,
+it's 324. For 1 3, it's a huge 1,636.
+You can see all the totals here. Now, we use these total gradients to update our
+weights one single time. We'll use the same learning rate, 0.001. Check out this update table for when he won. The
+new value is the old value 1 minus the learning rate times that total gradient of 924 which comes out to 0.9076.
+We follow the same process for every other weight. [Music]
+This update direction is a compromise. It's the average best direction that helps reduce the error across all our
+data, not just one example.
+But did it work? Let's verify.
+This is the big test. We're going to do a forward pass for all three examples again, but this time using our new batch
+updated weights. The architecture is the same, but the weights have changed. This looks like a lot of math. So, let's walk
+through the first example together. The target is 24. Before, our prediction was 37.
+Now with the new weights, H1 comes up to 23.19 and H2 is 11.81. We plug those
+into the final equation and our new prediction is 30.45.
+Hey, the old error was 169. The new error is just 41.6. It got much better.
+Now, here's the amazing part. Look at the other two examples. For the second one, the error drops from 361 all the
+way down to 127. And for the third example, the error practically disappears, dropping from four to just
+0.06. All examples improve with a single batch update, one update, and it works for
+everyone. This is how a network learns to generalize. So, which one is better? Pure online
+learning is fast, but the learning is noisy and chaotic. Full batch learning gives a stable direction, but it's
+incredibly slow and memory hungry. Imagine trying to calculate and store the gradients for a million images at once. So what do we actually use in the
+real world? We compromise. We use mini batch learning. This is the
+sweet spot. It's the industry standard that powers virtually all modern AI. The idea is simple. First, you take a small
+batch of examples, maybe 32 or 64. Then you update the weights based on that small group. Then you just repeat with
+the next batch. You can see the algorithm here. It's the best of both worlds. The gradients are stable enough because you're learning from a small
+crowd, not just one individual. And the memory usage is perfectly manageable. This is how you train a network on a
+data set of billions of images. You feed it one small handful at a time.
+So now we have a complete practical learning loop that can handle massive data sets. We have all the pieces. The
+Scaling Up to GPT-4
+only question left is how does this simple process which we ran on a tiny network with only five weights possibly
+scale up to train a monster like GPT4 with over a trillion weights? Is it really the same algorithm?
+The answer is the most beautiful part of this entire story.
+Look at this comparison. On one side you see our tiny network with just five weights. on the other GPT4 with 1
+trill760 billion weights. And yet, what's the process? It's identical. A forward pass,
+back propagation, and gradient descent. It's the same three-step dance. Scale
+changes everything. And yet, it changes nothing. The stunning truth is this.
+You just mastered the core algorithm running inside every AI system on Earth.
+Chat GPT, autonomous vehicles, medical diagnosis AI. They are all just scaled
+up engineered versions of what we just built together from scratch.
+So, how do we get from our simple model to these massive ones? The core
+principles don't change. It's the same engine, just at a bigger scale. Let's break down how.
+First, more layers and more neurons. This is the obvious one. Check out this table. Our network had two layers and
+two hidden neurons for a grand total of five weights. Real networks, they have tens or hundreds of layers with millions
+or billions of neurons leading to trillions of weights.
+So, what does this change in our process? Almost nothing. It just means the chain for the chain rule gets much
+much longer. The process though is identical. Second, we use more practical
+activation functions in our neurons. We used x squ. It worked, but it's gradient
+2x can get really big and cause problems. Look at this table of a few popular ones. You've got, which is super
+simple and fast. Then there's sigmoid, which is perfect when you need a probability between 0 and one. They're
+just different tools for the job, but the core idea is the same. They're just a function we can find the derivative
+for. [Music] Third, we use better loss functions for
+different jobs. We used mean squared error because we were predicting a number like a house price. But what if
+you're trying to classify an image as a cat or dog? For that, you'd use something called cross entropy loss,
+which you can see in this table. It's just a different formula for a different task. But here's the key. The specific
+formula doesn't matter as much as its job. And its job is always the same.
+Give us a single number to kick off the blame game.
+And that's it. That's the whole secret. You have seen the entire process
+from MidJourney generating incredible art to Tesla driving a car.
+They all use the exact same loop. Let's call it the universal pattern.
+One, forward pass. You make a guess. Two, loss function. You measure how
+wrong the guess is. Three, back propagation. You calculate the blame for every weight. Four, gradient descent.
+You nudge every weight in the right direction. And five, repeat. Do this millions or
+even billions of times. You started this hour thinking neural
+networks were an impenetrable black box, but now you know the truth. It's not
+magic. It's just a beautiful cascade of simple, intuitive ideas.
+Finding the bottom of a valley, tuning one knob at a time, and playing a clever
+game of blame. You've mastered the fundamentals.
+Welcome to the world of AI.
