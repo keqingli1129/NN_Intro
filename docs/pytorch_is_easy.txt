@@ -1,0 +1,460 @@
+Introduction
+Let's look at three lines of code.  Floss.backward optimizer.step and optimizer.zero.
+These three lines train every neural network  on Earth from GPT4 all the way down to your  
+weekend side project. Sure, you can copy paste  them from Stack Overflow. They work. Your model  
+trains. But what's really happening under the  hood? I used to think PyTorch was this massive  
+incomprehensible beast. Turns out I was wrong.  Dead wrong. The entire system follows the same  
+five-step recipe. Not 50 steps, not 500,  just five. Today we are going to implement  
+these five steps using nothing but raw math  and basic arrays. No magic, no abstractions,  
+just pure transparent code. Then and only then  we'll see why PyTorch's tools exist. Because once  
+you've built the engine with your bare hands, the  professional tools suddenly make perfect sense.  
+And it all boils down to these five steps.  Okay, look at this table. This is your cheat  
+sheet. We are going to walk through this entire  process together step by step. Give me 1 hour.
+Just one hour. We'll build your understanding from  the ground up. Welcome to chapter 2. Today we're  
+talking about the only data structure you really  need. Everything we do in PyTorch, every single  
+torch.tensor
+thing will be built on one single object. And that  object is torch.tensor. Think of a tensor as the  
+fundamental building block. It's the basic noun of  the PyTorch language. Now, you might be thinking,  
+"Hey, that sounds like a multi-dimensional array  from NumPy." And you'd be right. But this one  
+comes with superpowers. Our goal today is simple.  We are going to master this one crucial object.  
+So let's dive into the three common patterns for  creating tensors. Get these down and you're well  
+on your way. Pattern number one, direct creation  from data. This is the most straightforward. You  
+have a Python list and you want a tensor. Simple.  You just use torch.tensor. First, we'll import  
+torch. Then, we create a standard Python list  called data. Let's say it's a list of lists with 1  
+2 3 in the first row and 456 in the second. Then,  we just call my_tensor equals torch.tensor and  
+pass in our data. When we print my_tensor, look at  this output. We get a beautiful tensor object that  
+perfectly mirrors our list tensor. And inside we  see two rows. 1 2 3 and 45 6. Easy, right? Okay.  
+On to pattern two. Creation from a desired shape.  This one is huge. You'll use it all the time when  
+you're initializing model weights. The idea  is you know the shape you need, but you don't  
+know the values yet. So let's say our input is  a shape tpple. Maybe two rows and three columns.  
+Let's look at the code. We define shape equals the  tpple 2, 3. Then we can create a tensor of ones,  
+a tensor of zeros, or a random tensor using  torch.randen with that shape. Now let's print the  
+random tensor. And here's what we see. A random  tensor with two rows and three columns filled with  
+random values. This is your model's starting point  before it has learned anything. All right, pattern  
+number three. Creation by mimicking another  tensor. This is a clever one. Sometimes you  
+need a new tensor with the exact same shape and  type as another one. Instead of doing it manually,  
+we can just mimic it. Let's say we have an input,  a template tensor we created earlier. It has two  
+rows, 1 2 and 3 4. Now we can create a new tensor  with the same properties using a function like  
+torch.randen like. We pass in our template and we  can even specify a new data type like torch.flat.  
+So when we print both the template and the new  randen like tensor, check it out. The template  
+tensor is our original 1 2 3 4. And the new randen  like tensor has the exact same shape, but it's  
+filled with new random floatingoint numbers. Super  useful. Okay, so we know how to make tensors,  
+but what's actually inside a tensor? This brings  us to shape, type, and device. Every tensor has  
+three critical attributes. You will use these  constantly for debugging. Let's create a tensor  
+called well tensor using torch.randen with a shape  of two rows and three columns. Now let's print its  
+shape its data type and its device. Here's what  we get. The shape is torch size with a list of 2,  
+3. The data type is torch.flat 32 and the device  is CPU. Let's break these down. first.shape. It's  
+a tpple describing the dimensions. Listen to  me. This is your number one debugging tool.  
+I'm serious. 90% of your errors in PyTorch will be  shape mismatches. Master this. Next is dot device.  
+This tells you where the tensor lives. It's  either the CPU or for massive speedups on CUDA,  
+which means the GPU. And finally, dotdetail the  data type of the numbers. Did you notice the  
+default was float 32? This is not an accident.  Why float 32? Why not just integers? The answer  
+is gradients. The entire engine of deep learning  works by making tiny continuous adjustments to a  
+model's weights. We're talking about nudges. You  can't nudge a parameter from the number three to  
+3.001 if your data type only allows whole numbers.  It's impossible. And that tiny nudge, that's  
+the entire game. So the rule is simple. Model  parameters, your weights, your biases, they must  
+be a float type. And float 32 is the standard.  Data that represents categories or counts like  
+class labels. Sure, those can be integers,  but the stuff that learns has to be a float.
+Autograd & requires_grad
+This is where PyTorch's core magic comes  into play. It's a system called Autograd.  
+That stands for automatic differentiation. It's  PyTorch's built-in gradient calculator. And you  
+activate this entire powerful system with one  simple switch. The magic switch requires grad  
+equals true. By default, a tensor is just data.  To tell PyTorch it's a learnable parameter,  
+you must set requires grad equals true. This  is it. This is the most important setting in  
+all of PyTorch. It sends a message to the autograd  engine. It says this is a parameter. From now on,  
+track every single operation that happens to  it. Let's see this in action with data versus  
+a parameter. Okay, look at this code. First, a  standard data tensor. X data equals torch.tensor  
+with the values 1 2 and 3 4. Simple enough. Now  for a parameter tensor where we need gradients,  
+we create w= torch.tensor with values 1.0  and 2.0. And here's the key. We add comma  
+requires grad equals true. So when we print  the requires grad property for each of these,  
+the output is exactly what you'd expect.  The data tensor requires grad is false.  
+The parameter tensor requires grad is true. Once  you flip that switch to true, something incredible  
+Computation Graph & .grad_fn
+starts happening behind the scenes. PyTorch  begins to build a computation graph. Think of  
+it as a live recording of your operations. Let's  walk through building the graph together step by  
+step. Our goal is to compute z= x * y where y=  a + b. First we need three parameter tensors. We  
+create A equals torch.tensor of 2.0 with requires  grad equals true. Then B equals torch.tensor of  
+3.0 with requires grad equals true. And finally  X a tensor of 4.0 also with requires grad equals  
+true. So far we just have three separate tensors.  Now for the first operation, we define y= a + b.  
+Watch what happens. Pytorch instantly creates a  new node in its graph. It connects a and b to an  
+add operation which then creates our new tensor  y which has a value of 5.0. Next, we perform the  
+second operation z= x * y. And just like before,  pietorch adds to the graph. It connects our tensor  
+X and our newly created tensor Y to a multiply  operation. This produces our final result tensor  
+Z with a value of 20.0. So if we print the  result Z, we get 20.0. That's simple math. But  
+the graph PyTorch built that is the real story.  So how can you prove this graph actually exists?  
+Every tensor that's created by an operation  has a special attribute. It's calledgrad_fn.
+Think of it as a breadcrumb pointing to the  function that created it. Let's peek under the  
+hood. We'll check the tensors we just made. First,  let's print z.grad_fn. The proof is right there.  
+It says it was created by a mole backward zero  object. That's the multiplication. Next, let's  
+print y.grad fn. It points to an add backward0ero  object. That was our addition. But what about  
+a? Remember a was created by the user not by an  operation. So when we print a.grad_fn dot dot dot,  
+the result is none. This is the tangible  evidence of the computation graph. When we call  
+loss.backward backward. Later on, PyTorch will  walk this exact trail of breadcrumbs to calculate  
+the gradients. Here's what that final graph looks  like with the grad fn breadcrumbs included. You  
+can see Z points back to the multiply operation  and Y points back to the add operation. It's a  
+perfect map of our calculations. So far, we have  the tensor, that's our noun. We have autograd,  
+that's the nervous system. Now we need operations.  We need the verbs of PyTorch. These are the  
+actions, the calculations, the things our models  will actually do. And here's the good news. The  
+vast majority of deep learning is just a few  simple operations repeated over and over and  
+over again. Our goal here is to master these core  verbs, especially the ones that trip up beginners  
+Element-wise vs. Matrix Multiplication
+the most. Let's tackle the single most common  beginner mistake. The classic confusion between  
+the star operator and the at symbol operator.  First up, elementwise multiplication, which uses  
+the star. This one is pretty straightforward. It  multiplies matching positions. Think of it like  
+laying two tensors on top of each other and  just multiplying the numbers that line up.  
+The key rule here is that the tensors must have  the exact same shape. Let's look at an example.  
+We have tensor A which is a 2x2 tensor with values  1 2 3 and 4. And tensor B another 2x2 tensor with  
+values 10 20 30 and 40. When we type elementwise  product equals a star b what pietorch calculates  
+is this in the top left it's 1 * 10 top right 2 *  20 bottom left 3 * 30 and bottom right 4 * 40. So  
+the result is a tensor containing 10 40 90 and  160. Simple. Second matrix multiplication which  
+uses the at symbol. Now this is the one. This  operation powers neural networks. The rule here  
+comes straight from linear algebra. The number of  columns in the first matrix must equal the number  
+of rows in the second matrix. Let's see it in  action. We have M1 which is a tensor with a shape  
+of 2x3. And we have M2, a tensor with a shape of  3x2. See how the inner dimensions match. Three  
+columns in the first, three rows in the second.  Perfect. So when we calculate matrix product= M1  
+at symbol M2, the resulting shape will be the  outer dimensions, a 2x2 tensor. And the result  
+is a tensor with values 58, 64, 139, and 154.  So to be crystal clear, when you build a linear  
+layer, that classic formula y = xw +b, you  will always use the at operator. Always.
+Reduction Operations & The dim Argument
+Next up, reduction operations and the dim  argument. A reduction is any operation that  
+reduces a tensor to a smaller number of  elements. Think of things like sum, mean,  
+or maximum. Let's look at the default behavior.  Imagine we have a tensor called scores with two  
+rows and three columns. When we call scores.mme  with no arguments, it calculates the mean of the  
+entire tensor. It adds up all six numbers and  divides by six. The overall mean in this case  
+is 15.0. Simple enough. But this is where it gets  powerful. The dim argument lets you control which  
+direction to collapse. For a lot of people, this  is a huge aha moment. Here's the setup. Our scores  
+tensor represents two students and their scores  on three assignments. A simple rule for 2D tensors  
+like this is dim equals 0 collapses the rows. It  operates vertically. dim equals 1 collapses the  
+columns. It operates horizontally. Let's see the  code. We have our same scores tensor. To get the  
+average for each assignment, we need to collapse  the students. So, we collapse dimension zero. We  
+write scores do mean with dim equals 0. To get  the average for each student, we collapse the  
+assignments. So, we collapse dimension one. That's  scores dot mean dim equals 1. And look at the  
+results. The average per assignment gives us three  values, one for each assignment. The average per  
+student gives us two values, one for each student.  Let's visualize this collapse with this table.  
+Look at the scores table. We have student one and  student two and their scores on three assignments.  
+When we calculate mean with dim equals 1, we are  collapsing horizontally. For student 1, we take  
+10 + 20 + 30 and the average is 20. For student  2, we take 5 + 10 + 15 and the average is 10. See,  
+we got the average for each student. Now, let's  try the other way. When we calculate mean with dim  
+equals zero, we are collapsing vertically. For  assignment one, we take 10 + 5 and the average  
+is 7.5. For assignment two, 20 + 10 average is  15. For assignment 3, 30 + 15 averages 22.5.  
+It's so powerful once you see it. Mastering  the dim argument is non-negotiable. You will  
+use it absolutely everywhere. Selecting your data  from basic to expert. Basic indexing works just  
+like you'd expect from NumPy. It's for selecting  uniform blocks of data. For example, we create a  
+tensor X with values 0 through 11 reshaped into a  3x4 grid. If we want to get the third column which  
+is at index 2, we just write x open brackets  colon comma 2. That means give me all rows but  
+only the column at index 2. And the result is a  tensor with 2 6 and 10. Easy. But let's get more  
+dynamic. What about argmax? This function finds  the index of the highest value. This is how you  
+find a model's final prediction. Let's say we  have a scores tensor with two rows representing  
+two predictions. For the first row, the best  score is 20 which is at index 3. For the second  
+row, the best score is 30 at index one. When we  call torch.armax on our scores with dim equals 1,  
+it finds the index of the best score for each  row. The result is a tensor with values three  
+and one. Perfect. Now for the expert level tool,  torch.gather. Standard indexing is great. Get  
+column 2 for all rows. But what if you need  something more specific? What if you need from  
+row 0 the element at column 2 and from row one the  element at column 0 and from row two the element  
+at column 3. A totally custom selection for each  row. You could write a for loop, but that would  
+be slow. Torch. Does this in one highly optimized  operation? Let's walk through it. First, we have  
+our data tensor, a 3x4 grid. Now, we create our  shopping list. It's a tensor called indices to  
+select. It has the values 2, 0, and three, each in  its own row. This list tells gather which column  
+index to grab from each corresponding row in our  data. So when we call torch.gatherather, we pass  
+in our data. We tell it to gather along dim equals  1 because we're picking columns. And we pass in  
+our index, which is our shopping list. And look  at the selected values. Let's check its work. From  
+row 0, it was told to get index 2. It went to row  0 and got the value 12. Correct. From row one,  
+it was told to get index zero. It went to row one  and got the value 20. Correct. And from row two,  
+it needed index 3. It went to row two and got  the value 33. Perfect. Mastering gather unlocks  
+advanced dynamic model capabilities. It is a  cornerstone of complex architectures. We are  
+building a model from scratch. And this is part  one, the forward pass. This is step one of our  
+five-step loop. The whole point of this step  is just making a guess. So what is a forward  
+pass? Think of the forward pass as the model's  first guess. When you first create a model,  
+it knows absolutely nothing. So initially, its  guess is completely random. And that's exactly  
+what we want. It's a blank slate ready to learn.  Our goal for this section is simple. We're going  
+to implement a model's first guess using only the  raw tensor operations we've just learned. No fancy  
+libraries helping us out just yet. So what's our  model? We're starting with the most fundamental  
+one. Simple linear regression. You'll see this  formula everywhere. yhat = xw + b. Let's break  
+that down. X is our input data. W is the weight  and B is the bias. And that little symbol Yhat is  
+our model's prediction or its gas. Now W and B are  the two knobs our model can turn. Our entire goal,  
+the whole point of this whole process is to find  the perfect values for them so our prediction yhat  
+gets as close to the real y as possible. Time for  the setup. Let's create our data. We'll make some  
+fake data that follows a clear line. y = 2x +  1, but with a little bit of noise. Let's walk  
+through the code first. n equals 10. That means  our batch of data will have 10 data points. D_in  
+equals 1 and D underscoreout equals 1. This just  means each data point has one input feature and  
+one output value. Next, we create our input  data X using torch.randen with N and D_in.  
+Now for the important part. We create our true  target labels. Y true by using the secret answers  
+the true W and true B. The true W is a tensor  with 2.0 and the true B is 1.0. So we calculate Y  
+true N tensors by taking X at true W plus true B.  And then we add a little random noise at the end.  
+Now this is crucial. The model will never see true  W or true B. Its entire job is to discover them  
+just by looking at the input X and the correct  answers Y true. Next, we create the model's brain.  
+These are the parameters W and B that it will  actually learn. We initialize them with random  
+values and then we turn on the magic switch. Let's  look at the code. We initialize our weight w using  
+torch.rand with the right shape. And here it is,  comma requires grad equals true. We do the exact  
+same thing for our bias B. A random number with  requires complete equals true. Let's print them  
+out and see what we get. The initial weight W is  a tensor with some random value like 0.4137. and  
+the initial bias B is something like 0.2882. This  is the model's initial hypothesis. It's completely  
+wrong, but that's okay. It's a start. And now for  the implementation. The moment we translate our  
+math into code, the math is y= xw +b. The code is  y= x at sin w + b. That's it. That's the forward  
+pass. So let's see our first guess. We run the  forward pass through our model. Then we print  
+the prediction yhat and the true labels y true  to see what we got. The result is a disaster just  
+as we expected. Look at this. The prediction  for yhat gives us values like 0.07, 07, 0.18,  
+and 0.14. But the true labels are negative 0.1,  0.44, and 0.33. Our guess is terrible. They aren't  
+even close. But notice something else. Look closer  at the output for the prediction yhat. See that  
+at the end? It says grad n equals add backward  zero. Autograd was watching. The nervous system  
+is active. It's already started building the graph  that connects our parameters to our prediction.  
+So let's recap. We've successfully completed the  first step. We made a guess. It's terrible. Our y  
+hat is nowhere near the true y, but that's okay.  How do we quantify exactly how wrong we are? This  
+is the backward pass. Step two of our loop. If  the forward pass was the guess, the backward pass  
+is the postmortem analysis. We compare our guess  to the truth and then we figure out exactly who  
+to blame. Think of it like tuning a radio. Look  at this slide. You've got two knobs. Knob one is  
+our weight W. Knob two is our bias B. The static  you're hearing, that's our prediction, Yhat. And  
+the clear signal we're trying to find, that's the  truth, Y. The backward pass is all about figuring  
+out which direction to turn each of those knobs  to make the static go away. To do that, we need  
+a single number. a scorecard that tells us on the  whole how badly our model is doing. This number is  
+called the loss. Now, for what we're doing, which  is regression, the most common loss function is  
+the mean squared error or MSE for short. The name  sounds a little complicated, but I promise the  
+idea is really simple. Let's look at the formula  on the screen. We see L = 1 /n * the sum of Y - Y^  
+2. Let's break that down into plain English.  For every prediction we make, first you find the  
+difference. That's Y minus Y. Then you square that  difference to make it positive. That's the Y minus  
+Y^2 part. And finally, you just take the average  of all those squared differences. That's it.  
+Let's translate that directly into code. As you  can see, we have our yhat, our guess, and y true,  
+the truth. First, we calculate the error, which is  just yhat minus y true. Next, we get the squared  
+error by taking that error to the power of two.  Finally, our loss is just the squared error dot  
+mean. Now, let's print it out. Print loss. Our  single scorecard number is loss. And here's our  
+scorecard. The loss is 1.6322 and so on. Now,  here's the thing. The number 1.63 doesn't mean  
+much on its own. All that matters is that our goal  is now crystal clear. Make this number as small as  
+possible. And notice this loss tensor also has  a grad stance. It knows it's the result of all  
+the previous calculations. It sits at the very  end of our computation graph. It is the source  
+from which all knowledge will flow backward. Now  for the magic. How do we know which way to turn  
+the W and B knobs to lower that score? This is  where Autograd does all the heavy lifting for  
+loss.backward()
+us. With one single command, in fact, this might  be the single most powerful line of code in all of  
+PyTorch. We are telling PyTorch travel backward  from the loss and calculate gradients for all  
+parameters that have requires grad equals true. In  our case, it will compute the two most important  
+values we need. First, the partial derivative of L  with respect to W. In other words, the gradient of  
+the loss with respect to our weight W. And second,  the partial derivative of L with respect to B,  
+the gradient of the loss with respect to our bias  B. Ready? Here is the command. loss dot backward.  
+That's it. No output. It looks like nothing  happened. So, what just happened? PieTorch  
+just performed the most critical step of the  learning process. It populated a hidden attribute  
+for our W andB tensors, the grad attribute. Let's  inspect the result. The gradient is the answer.  
+Thegrad attribute now holds the signal that tells  us exactly how to adjust our knobs. As you can see  
+in the code, first we compute the gradients  by calling loss.backward. Then we can just  
+print them. Let's print the gradient for W and the  gradient for B. And here they are the directions.  
+The gradient for W is a tensor with 1.0185. And  the gradient for B is a tensor with -2.0673.
+This is the aha moment. What do these  numbers actually mean? Look at W.Grad.  
+It's -1.0185. The sign is everything. A negative  gradient means that if we were to increase W,  
+the loss would decrease. The gradient  always points toward the steepest increase.  
+So to minimize the loss, we need to go in  the opposite direction. Now look at B.RAD.  
+It's -2.0673. It's the same story. A negative sign  means increasing B will decrease the loss. And the  
+larger magnitude just means the slope is a little  steeper for B right now. So there we have it. We  
+have what we need to improve. We can measure  our error using the loss and we know the exact  
+direction to go thanks to the dotgrad attribute.  The postmortem analysis is complete. The blame  
+has been assigned. The final step is to actually  act on this information. Let's use an analogy.  
+Imagine we are standing on a foggy mountain. We  can't see the bottom, but we want to get there.  
+the loss. The loss tells us our current altitude.  The higher the loss, the higher up we are. The  
+gradients, which we just calculated in the  last chapter, they tell us the direction of  
+the steepest slope. So, what do we do? We take a  small step downhill and we do it again and again  
+and again. This is it. the heart of the entire  deep learning process, the training loop. This is  
+where learning actually happens through a simple  and beautiful algorithm called gradient descent.  
+Gradient Descent Update Rule
+This brings us to the single most important  formula in all of deep learning. Let's look at it.  
+theta at time t + 1 equals theta at time t  minus theta * the gradient of l with respa
+that represents all our parameters for  us that's just w and b next that's the  
+learning rate it's just a small number maybe  0.01 that controls our step size. It's how  
+big of a step we take downhill. And finally,  the gradient of the loss. We just calculated  
+this. It's the information waiting for us in  W.grad and B.grad. So, the update rules in our  
+code become a direct translation. W new equals  W old minus the learning rate * W.Grad. grad  
+and B new equals B old minus the learning rate  time B.Grad. That's it. We are literally just  
+nudging our parameters in the opposite direction  of the gradient. Let's put it all together into  
+the training loop. We just repeat our five steps  for multiple epochs. An epoch is just one full  
+cycle through our learning process. Now, there  are two new and critical details here. First,  
+you'll see a block that says torch.nowgrad. This  tells PyTorch, hey, don't track these parameter  
+updates in your computation graph. I'm doing  this manually. And second, you'll seegrad.0.
+This is so important. It resets  the gradients after each iteration.  
+If we didn't do this, the new gradients would just  add on to the old ones and we'd get completely  
+lost on our foggy mountain. Here is the entire  training process in one beautiful block of code.  
+We'll walk through this step by step. First,  we set our hyperparameters, a learning rate,  
+and the number of epox. Then we reinitialize  our parameters W and B with random values,  
+making sure to set requires grad equals true.  Now for the training loop itself, for each epoch,  
+we perform steps one and two. We do our  forward pass to make a guess, which is yhat,  
+and then we calculate our error, which is the  loss. Next is step three, the backward pass. We  
+call loss.backward backward to calculate  the blame for the error. In other words,   the gradients. And here's the new part. Step  four, we nudge the parameters in the correct  
+direction. This is the gradient descent step where  we subtract a tiny fraction of the gradient from  
+our parameters. And finally, step five, we  reset for the next round of learning. We  
+callgrad.0 to zero out the gradients and get  ready for the next epoch. Now for the payoff,
+let's add a print statement inside that loop and  watch what happens. We'll print the epic number,  
+the loss, W, and B every 10 epics so  we can see the progress. At the end,  
+we'll print our final learn parameters  and compare them to the true parameters   we were trying to find, which  were a W of two and a B of 1.
+Let's run it. Look at this table. At epic zero,  
+our loss is a pretty high 4.1451. Our  initial random guess for W is way off at0.347
+and B is at 0.505. Now watch, after just 10  epics, the loss has plummeted to 1.04. W has  
+already become positive. At Epic 20, the loss is  down to 0.29. Look at W and B. One is almost at  
+1 and the other is just over one. They're getting  so much closer. And it just keeps going. Epic 30,  
+40, 50. Look at those numbers converge. I'm not  going to read all of them, but you can see the  
+trend. The loss keeps dropping and W and B get  closer and closer to the truth. It's incredible.  
+Watch the learning happen. The loss is plummeting.  W is marching steadily toward its true value of  
+2.0 and B is honing in on its true value of 1.0.  It works. It actually works. We have successfully  
+implemented the entire gradient descent algorithm  from scratch. We have built a machine that learns.
+We just built a learning machine from  scratch. It was amazing. But let's be honest,  
+we had these loose tensors named W and B. We had  to manually update them. We had to manually zero  
+their gradients. It was messy. Now imagine your  model has 50 layers, a million parameters. Are  
+you going to write a million lines of code?  Absolutely not. There has to be a better way.  
+This is where we graduate. We go from working with  raw clay to building with highquality standardized  
+torch.nn.Module
+Lego bricks. Welcome to the torch.n module.  PyTorch's library of pre-built layers that forms  
+the backbone of every single professional model.  Let's talk about the workhorse torch.n.linear.
+The first Lego brick we'll grab is one that  looks very familiar. The torch.n.linear  
+layer does exactly what our manual X at W  +B operation did, but instead of leaving W  
+and B as loose tensors floating around, it neatly  packages them inside a professional object. Let's  
+look at how to use nn.linear. We are going  to walk through this together step by step.  
+First we define our dimensions. D underscorein  equals 1 because our input has one feature. D  
+underscore out equals 1 because the output  has one value. Next we create the linear  
+layer Lego brick itself. We'll call it linear  Lego bricks equals torch.n.linear linear with  
+in features equals D_in and out features equals  D_out. Now, here's the cool part. You can look  
+inside and see the parameters it created for  you. If we print linear layerweight and linear  
+layer.bias, check this out. Look at this output  on the slide. The layer's weight W is a parameter  
+containing a tensor. And notice it says requires  grad equals true. It did that for us. Same for the  
+layers bias B. And to use it, you just use it  like a function. This is the forward pass. We  
+just call y NN equals linear layer and pass in our  x. And you can see the output of nn.linear right  
+there on the slide. So much cleaner. So what is  a parameter? It's a special kind of tensor that  
+one has requires grad equals true by default.  Two, it autoregisters with the model and three  
+it handles all the bookkeeping for you. Huh? No  more manual work. Linear models are powerful,  
+but they have a hard limit. If you stack  a bunch of linear layers, it's the same  
+as just having one bigger linear layer. They  can only ever learn straight lines. To learn  
+the complex messy patterns of the real world,  you need to introduce kinks or nonlinearities  
+between your linear layers. This is the job  of an activation function. First up is nnu.
+That's reel for rectified linear unit. The  rule is dead simple. If an input is negative,  
+make it zero. That's it. Reu of X equals max of0X.  Look at this example. We create the layer relu=  
+torch.n.relu. We have some sample data. A tensor  with -2 0.5 0.5 and 2. And we pass it through the  
+layer and the output. Look the original data  is on top. The data after relu all the negative  
+values are just gone. They've been set to zero.  Simple and effective. NN. Gelu. This is the modern  
+standard for transformers like GPT and llama.  Think of it as a smoother gently curving version  
+of relu. Let's run the same code. We create the  layer jello equals torch.n.jello. We use the exact  
+same sample data, but now look at the output. The  negative values aren't snapped to zero. They're  
+just gently squashed towards it. This little  bit of smoothness can make a huge difference  
+in training massive models. NNS softmax. This one  is special. You almost always use it on the final  
+output layer for classification problems. Its job  is to convert the raw model scores which we call  
+logits into a probability distribution. What does  that mean? The output values will all be between 0  
+and 1 and they will all add up to exactly one.  Let's see nn.softmax in action. We create the  
+layer softmax equals torch.n.softmax softmax  and we set dim equals -1. Now imagine our model  
+gave us some raw logit scores for two different  items across four possible classes. You can see  
+them there in the logits tensor. When we pass that  through softmax look at the output probabilities  
+for the first item. The highest logit was 3.0.  Softmax turned that into the highest probability  
+0.6. 6558. And if you sum up the probabilities  for that first item, they equal 1.0. Perfect.  
+Pay attention. What we're about to cover isn't  just a toy. These are the literal non-negotiable  
+building blocks of models like GPT, Llama, and  Gemini. First up, NN. This layer's job is to turn  
+words into numbers. It's a giant learnable lookup  table. Each word gets its own unique vector. Let's  
+see it in code. We'll say our vocabulary size is  10. So we have 10 unique words. And our embedding  
+dimension is three. So we'll represent each word  with a 3D vector. We create the layer embedding  
+layer equals torch.n. nn.betting with the vocab  size and embedding dimension. Now for our input,  
+this is a sentence where each word is an ID.  For example, the ids 1 5 0 and 8. When we pass  
+those input ids to the layer, look at the output  word vectors. Our input had a shape of 1x4 and  
+our output has a shape of 1x 4x3. For each of  our four input ids, it looked up and returned  
+the corresponding three-dimensional vector.  This is the first step in every large language  
+model. Next, nlayer norm. As data flows through a  deep network, the numbers can explode or vanish,  
+making training impossible. Layerm is the traffic  cop. It rescales everything to a stable range.  
+This is essential for deep networks. Here's the  code. Our word vectors have a feature dimension  
+of three. So, we create a norm layer equals  torch.n.layerm with a normalized shape of three.  
+We create some sample input features and when we  pass them through the layer, look at the results.  
+The mean of each output vector is basically zero.  The standard deviation is basically one. It keeps  
+the network stable. It's beautiful. And finally,  nn.ropout. This is a brilliant trick to prevent  
+overfitting during training. It randomly zeros  out some of the neurons. This forces the network  
+to become more robust and not rely on any single  neuron. But here's the most important thing. It  
+only happens during training. Let's look at the  code for dropout comparing train versus eval mode.  
+We create a dropout layer that will zero out 50%  of inputs. Then we create an input tensor of all  
+ones. First, we activate dropout for training  by calling dropout layer.train. Look at the  
+output during training. It's randomly zeroed  and scaled. Some values are zero, others are  
+two. Now we deactivate dropout for evaluation  by calling dropout layer.val. And the output,  
+it's the identity function. It just passes the  original tensor of all ones straight through. This  
+simple onoff switch is a cornerstone of modern  deep learning. Remember this code from our last  
+training loop, the from scratch way where we use  torch.nrad, then manually updated our weights. W  
+minus equals learning rate* W.grad. Then we did  the same for our bias B. And finally, we had to  
+manually zero out the gradients for both W and B.  Now, imagine your model has 50 layers, a million  
+parameters. Are you really going to write a  million lines of code to update each parameter and  
+then zero its gradient? Absolutely not. We need  to go pro. PyTorch provides two core EBS Brian to  
+clean all of this up. First nodule which we use  to organize our model and second torch.optimum  
+which we use to automate the learning. Think of it  this way. Nin domodule is the instruction booklet  
+and the base plate for our Legos. It provides  a standard structure for how all your little  
+bricks connect. Then you have torch.optimum.  This is the skilled builder who knows exactly  
+how to adjust all the bricks according to the  instructions from the gradients. So let's do it.  
+Let's refactor to professional PyTorch. Clean,  standard, and scalable. First up is the model  
+blueprint nodule. The pattern is always the same.  You inherit from torch.n.module. You define your  
+layers in the double_init method and you connect  the layers in the forward method. That's it. Let's  
+rebuild our model. First, we import torch.n nn  as nn. Then we define our class linear regression  
+model and notice we inherit from nnn.module.  Inside the constructor, the init method,  
+we first call super.init. This is super important.  Then we define the layers we'll use. We'll create  
+one self.linear layer equals inn.linear with  infetcher and out features. Now in the forward  
+pass, this is where we connect the layers. We just  return self.linear layer applied to our input X.  
+Finally, we instantiate the model. Model equals  linear regression model with infiguration equals  
+1 and out features equals 1. And here's the  professional result. When we print the model,  
+look at this beautiful output. It prints the  model architecture linear regression model  
+containing a linear list which is a linear layer  with in features equals 1 out features equals 1  
+equals 1 and bias equals true. All our parameters  are now neatly organized. No more loose tensors.
+torch.optim
+Next up the optimizer torch.optim. We're going  to replace our manual weight update. And the  
+most common optimizer, the one you should almost  always start with is Atom. We import torch.optim  
+as optimum. We set our hyperparameter learning  rate equals 0.01. Then we create the optimizer.  
+Optimizer equals optimum.atom. And here's the  key part. We pass model.parameters to tell  
+it which tensors to manage. We also pass  our learning rate. And while we're at it,  
+let's grab a pre-built loss function from torch.n.  We'll use loss fx equals nn.mse loss. The stage  
+is set. We have our organized model and our  automated builder. We are about to rewrite  
+our training loop. What was once five messy manual  steps will become an elegant high-level process.  
+This is the universal pattern you will see in 99%  of all PyTorch code. It all boils down to what I  
+call the threeline mantra. Number one, optimizer.0  twiddled line. Number two, loss.backward.
+Number three, optimizer.
+That's it. That's the entire engine. Let's compare  the from scratch loop versus the professional  
+loop. On the left, our old way. On the right, the  new way. Step one, the forward pass. Before it was  
+y= x w + b. Now it's just y= model x. So much  cleaner. Step two, loss calculation. Before we  
+wrote out the whole mean squared error formula.  Now we just call loss equals loss fn of yhat and  
+y true. And now for the big one. Steps three,  four, and five. Before we had three separate  
+manual steps. loss dotbackward, then updating W  and B by hand, then zeroing out their gradients.  
+Now it's all replaced by the threeline mantra.  Optimizer.0 grad loss.backward optimizer.step.
+So much better. Let's look at the final clean  training loop. We set our epochs to 100. We  
+start our for loop. First the forward pass.  Yhat equals model X. Next we calculate the  
+loss. Loss equals loss GTK with our predictions  and true values. And now the threeline mantra.  
+One zero the gradients. Optimizer.0 zero grad  two compute the gradients lossbackward and  
+three update the parameters optimizer step  and that's it we can add an optional print  
+statement to watch our progress and look  at that the same beautiful result epoch  
+zero the loss is 2.6515 6515. By epoch 10,  it's 1.7. By epoch 50, it's down to 0.0886.
+And by epoch 90, the loss is down to 0.0210.
+Perfect. We achieved the exact same outcome, but  our code is now organized, scalable,  
+and uses the Strread optimized  tools that power realworld AI.
+You might be sitting there thinking, "This is  great for a toy model that learns a straight line,  
+but how does any of this relate to a massive LLM  like GPT? And this is the final most important  
+lesson of this entire hour. It is not an analogy.  You have learned the exact fundamental components  
+and the universal process used to train them. You  see, the difference between our tiny model and an  
+LLM is not one of a kind. It is one of scale and  architecture. So let's make the direct link. Let's  
+Transformer Feed-Forward Network
+look inside the transformers feed forward network.  Inside every single transformer block, and that's  
+the architecture behind all modern LLMs, there's a  little subcomponent called a feed forward network  
+or FFN. And if we look at the code for it, here it  is. This is the literal PyTorch code for an FFN.  
+And here's the amazing part. Look at that code.  You can read this perfectly. It's a class called  
+feed forward network that inherits from nnn.module  just like ours did. And what's inside the Lego  
+bricks? We already know. There's self.layer 1  equals nn.linear. There's an activation function  
+in this case n. Gelu. And then there's self.layer  layer 2, which is another NN.linear. The forward  
+method is exactly what you'd expect. The data  goes through layer 1, then the activation,  
+then layer 2. That's it. The feed forward  network inside a multi-billion parameter model  
+is literally this simple. The model's incredible  power comes from stacking dozens of these blocks.  
+And each of those blocks contains one of these  FFNs and a self attention mechanism which itself  
+is also built from NN.linear layers. So let's  get a real sense of scale. Check out this table.  
+We're going to compare our toy model to a typical  LLM like Llama 38B. First row, the model. For us,  
+it was our linear regression model. For the LLM,  it's a transformer. Makes sense. Second row,  
+the layer. For us, we used nn.linear. For the LLM  inside one of those FFNs, it's also NN.linear.
+Now, here's where it gets wild. Look at the  weight matrix W shape. For our toy model,  
+the shape was 1 by one, a single number.  
+For just one of the linear layers in the  LLM's FFN, the shape might be 4,96x 14,336.
+That's over 58 million values in a single  matrix. But the operation matrix multiplication,  
+it's the same. Exit W for us, exit W for the LLM.  And finally, total parameters. Our toy model had  
+two. The LLM around 8 billion. And this this is  the most important part. The process we used to  
+train our two parameter model is the exact same  process used to train that 8 billion parameter  
+LLM. The five-step logic is universal. Let's break  it down. Step one, yhat equals model of X. For us,  
+that model was a single linear layer.  For the LLM, it's dozens of transformers,  
+but the call is the same. Step two, loss  equals loss FN. For us, we used mean squared  
+error. The LLM uses something called cross  entropy loss to predict the next word.  
+The goal is different but the concept is  identical. Get one number that represents the  
+error. Now for the last three optimizer zero  med for the LLM identical loss.backward for the  
+LLM identical. Autograd doesn't care how deep the  model is. optimizer.step for the LLM. You guessed  
+it, identical. The optimizer just does its job.  Whether it's managing two parameters or 8 billion,  
+you've done it. In this hour, we have journeyed  from a single number in a tensor to understanding  
+the engine that powers the largest AI models in  the world. The magic of deep learning is gone. It  
+has been replaced by engineering. You now know  that a model is just an nn.m module containing  
+layers. A layer is just a container for  parameters that performs a mathematical  
+operation. And learning is just updating those  parameters with zero grad backward and step.  
+You now understand the engine. You are ready  to move on from how a model learns to what a  
+model learns with a rockolid foundation in  the principles that bring it all to life.

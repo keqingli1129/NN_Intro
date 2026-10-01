@@ -1,0 +1,281 @@
+Intro: The Goal of LLM Pre-Training
+You've seen it happen. You ask ChatGBT to  write Python code and it spits out a script  
+that actually works. You ask it to explain  quantum physics and it explains it better  
+than a textbook. It feels like magic. But the  secret isn't magic. It's just math relentlessly  
+applied to one deceptively simple task. Predict  the next token. In this video LLM pre-training,  
+we are going to pull back the curtain. You will  see the exact pipeline that turns the raw chaotic  
+text of the internet into the foundation for  models like GPT. We'll cover the core concepts,  
+things like self-supervised learning, subword  tokenization, softmax prediction, and the  
+cross entropy loss function that drives the whole  process. We will follow this simple road map from  
+start to finish. Check it out on screen. First, in  part one, data preparation, we'll see how to take  
+raw internet text and turn it into millions of  structured input and output pairs. The best part,  
+it's completely free. Then in part two, we'll  dive into the learning loop. This is where the  
+model predicts a token, measures its own error,  and then systematically self-corrects. And it  
+does this billions and billions of times. By the  end of this video, you will understand the exact  
+technical pipeline, the one that creates  the foundational intelligence of an LLM.
+The Data Bottleneck & Self-Supervised Solution
+So, let's start with a big question. Why did  it take so long to build models like GPT?
+Now, if you think the answer  is just more computing power,  
+you're only half right. The real problem, the true  billion dollar bottleneck was data. For decades,  
+AI models learned through a process called  supervised learning. Take a look at the diagram  
+here. The idea was pretty simple. You give  the model an input, like an image of a cat,  
+and the model learns to predict the correct  output, the word cat. It does this by comparing  
+its prediction to a correct human provided label.  But there's a huge catch. Where do those labels  
+come from? A human has to create them. And  that is fundamentally expensive. I mean,  
+think about the real world cost of these labels.  Check out the examples on this slide. If you want  
+to train an AI on medical imaging, you need expert  radiologists to sit there and label MRI scans.  
+We're talking hundreds of dollars per hour. Or  for legal documents, you need lawyers to classify  
+contracts, which costs even more. This creates  a brutal ceiling on progress. Look at ImageNet.  
+It's a famous data set that really kickstarted  the deep learning revolution. It has 14 million  
+labeled images. Now, that sounds like a lot,  but it took years of effort and millions of  
+dollars to create. And here's the kicker.  It's just a tiny fraction of the billions  
+of unlabeled images just sitting on the internet.  Supervised learning hits a brick wall. How do you  
+scale to trillions of examples if every single one  requires an expensive human expert? This is where  
+the revolution happened. The genius of models  like GPT wasn't just building a bigger neural  
+network. It was abandoning the need for human  labels entirely. [Music] This breakthrough is  
+called selfsupervised learning. They found a way  to make the data label itself. And this created a  
+paradigm shift in scale. Just look at this table.  In the old days of traditional machine learning,  
+we get data sets measured in megabytes. And yes,  they needed human labeling. Then deep learning  
+came along with data sets like imageet measured in  gigabytes, but still we needed humans. Now look at  
+the GPT2 era. We're talking about 40 GB of text,  but the most important part is that final column.
+That final column changes everything.
+Suddenly, you're not limited by human effort. You  have an almost infinite source of training data. A  
+single 2,000word Wikipedia article is converted  into nearly 2,000 individual training examples.  
+This results in billions of learning  opportunities, all for free. We solve the  
+data bottleneck by turning the internet into an  infinitely large self-labeling textbook. So, how  
+do you get trillions of training examples without  paying millions of dollars to human experts?
+You make the data label itself. The  breakthrough idea is deceptively  
+simple. The task is this. predict the next word.
+That's it. That's the entire secret. No human  annotation is needed. The text itself provides  
+both the input, which is the sequence of words  so far, and the label, which is the very next  
+word. Look at this diagram here. If the input  is the cat sat, the label the model needs to  
+predict is on. It's all right there in the text.  This is the core of self-supervised learning.
+It's the closest thing to a free lunch in machine  learning. We promised you an algorithm and here it  
+is. Check out this simple, powerful engine  that creates unlimited training data. Now,  
+don't worry about the code details. The idea is  really straightforward. It just takes a document,  
+walks through it one word at a time, and for  every step, it creates a new training example.  
+The input is everything it's seen so far and  the target is the very next word. Let's make  
+this crystal clear. Take the simple sentence.  The cat sat on the mat. Now look at this table.  
+This one sentence becomes a full curriculum for  the model. Let's walk through it together step  
+by step. For the very first example, the input  sequence the model sees is just the single word  
+'the' and its job to predict the next word which  is cat. That's our first high quality example.  
+Okay, example two. Now the model sees the sequence  the cat. What does it have to predict? The next  
+word in the sentence which is sat. Simple, right?  And the process just continues. The input the cat  
+sat is paired with the target on. The input the  cat sat on is paired with 'the' and finally the  
+cat sat onthe' is paired with the target Matt. So  one sentence gives us five highquality examples  
+for free. Now scale that up to the size of the  internet. I know what you might be thinking.  
+This seems way too simple. How can just guessing  the next word teach a model to reason, write code,  
+or explain science? Because to get consistently  good at this task across billions and billions  
+of examples, the model is forced to build a deep  internal understanding of the world. Let's look  
+at this prediction task here. Imagine the  model sees in Paris, the capital France,  
+the primary language spoken is. Now, what must the  model learn just to predict that one word, French?
+Well, first it has to learn grammar. It needs  to know that the verb is is likely going to be  
+followed by a noun. Second, it needs to handle  long-distance context. It has to connect the end  
+of the sentence all the way back to the word  Paris, which appeared many words ago. Third,  
+and this is the amazing part, it has to learn  world facts. It needs to know that Paris is  
+in France and that they speak French there. And  finally, it has to learn to ignore distractors.  
+It has to figure out that the word France is  the crucial clue here, not the word primary.
+So to minimize its error across  trillions of examples like this,  
+the model must learn concepts, facts, and  the relationships between them. It's not  
+just memorizing sentences. It's learning  the underlying structure of reality. So  
+Tokenization: Bridging Text and Numbers
+let's get into a really fundamental concept. A  neural network doesn't understand the word cat.
+It doesn't understand grammar or sentences.  
+A neural network understands  one thing and one thing only
+numbers.
+The process of converting raw text into a list  of numbers the model can actually process is  
+called tokenization. And trust me, it's way  trickier than it sounds. At first glance,  
+this seems simple. Let's take the sentence  you see here. The cat quickly jumped. So,  
+what's our first idea? Approach number one. Why  not just split by spaces? This gives you what we  
+call word level tokens. You can see the list.  The cat quickly jumped. Seems logical enough.  
+Okay. What about approach number two? We could  go even smaller. This gives you character level  
+tokens. Check it out. T H E C A T and so on.  Both of these ideas sound pretty reasonable,  
+right? But in practice, they create immediate and  severe problems. Let's put them head-to-head. Now,  
+look at this table. We're going to compare word  level and character level tokenization. First,  
+let's talk about vocabulary size. With  word level tokens, the vocabulary just  
+explodes. Think about it. Are jump, jumps,  and jumping all different words? To the model,  
+they would be. you'd need a massive dictionary.  But with characters, the problem is solved. The  
+vocabulary is tiny. Just A through Z, numbers,  and some punctuation. Okay, but what about unknown  
+words? This is a big one. With word level tokens,  the model just breaks if it sees a new word it's  
+never been trained on. But with characters,  again, problem solved. You can build any word  
+in the universe from individual characters. So,  characters are looking pretty good, right? Well,  
+here's the catch. Sequence length. With words, the  sequences are nice and short, but with characters,  
+you get these very long sequences. This creates  a huge problem. So, let's recap. Wordle level  
+tokenization fails because the vocabulary explodes  and even worse, it breaks on any word it hasn't  
+seen before. This is a deal breakaker. Characters  solve those problems. They have a small vocabulary  
+and can build any word. But they create a new  crippling problem. Massive inefficiency. [Music]
+Learning relationships across really long  distances, like from the start of a paragraph  
+to the end, becomes incredibly difficult  and computationally expensive. On one hand,  
+you've got word level. It's efficient,  but it's brittle. It breaks easily.  
+On the other hand, you have character level.  It's robust, but it's massively inefficient.  
+We need a solution that gives us the best of both  worlds. We need a manageable vocabulary that can  
+still represent any word without creating absurdly  long sequences. And this leads us to the clever,  
+elegant solution that modern language models  actually use. The genius of subword tokenization.  
+The core idea is brilliant. Don't treat  words as the smallest unit. Instead,  
+break them down into smaller common pieces.  Just like building things with Lego bricks,  
+the tokenizer learns common subword pieces  from the training data itself. Let's see how  
+this works in practice. Check out this table. For  a simple word like cat, it's just one token, cat.  
+But for an adverb like quickly, it gets broken  into two common pieces. Quickly. And a verb form  
+like jumping becomes jumping. That double hashtag,  by the way, is just a special marker. It tells us  
+that this piece is attached to the previous one.  This single elegant solution solves all of our  
+earlier problems. First, it creates an efficient  vocabulary. Before this was really wasteful. You  
+had separate entries for jump, jumps, jumping,  and jumper. That's four different vocabulary  
+slots. But now it's so much smarter. You just need  the main stem jump plus the little pieces like s,  
+ing, and second, and this is the big one. It means  there are no unknown words. How does it handle a  
+challenge like a new word? Hyperthreading. Simple.  It just builds it from its Lego bricks. Hyper  
+out thread in itational. What about a typo like  awesome? It might break that down into awesome m.  
+The out of vocabulary problem is solved. Okay.  So after splitting the text into these pieces,  
+there's one final step. We look up each token in  the vocabulary to get a unique integer ID. So,  
+as you can see in this little table, 'the'  becomes five, cat becomes 8, quick becomes 73,  
+and so on. Let's walk through the full process  for the sentence, the cat quickly jumped. Step  
+one is the input text itself. Step two, we do the  subword splitting which gives us the cat, quick,  
+lee, jump, ed. And step three, the final output  is just that list of token IDs. 5 8 73 152 311  
+94. This final list of numbers is what actually  gets fed into the neural network. But here's  
+where it gets interesting. This brilliant  engineering solution has a hidden cost,  
+a quote dirty secret that explains some of the  weirdest failures you see in LLMs. Have you ever  
+asked a powerful model a simple question like how  many Rs are in the word strawberry and watched it  
+fail? This is why you, a human, sees strawberry.  It's one object, easy to scan and count. Three Rs.  
+The model sees three abstract alien symbols.  Let me show you what the model actually sees.  
+Because of subword tokenization, the word  strawberry becomes three separate tokens.  
+Let's say one symbol means str, the next  one means a, and the last one means berry.
+Now imagine I asked you how many  rs are in those three symbols.  
+you'd have to mentally decode each symbol back to  its letters, keep track of where the Rs are across  
+the symbol boundaries, and then count them. That's  exactly what the model has to do. The letters are  
+hidden inside the tokens. The model doesn't see  individual characters. It sees these learned  
+chunks. So, tokenization gives us efficiency and  power, but it also creates these strange blind  
+spots. We've turned our raw text into a clean  sequence of token IDs. This is the final input.  
+We're now ready to feed these numbers into the  model. How does the model go from billions of  
+internal calculations back to a single predicted  token? This brings us to the elegant math of  
+prediction. But first, we have to clear up the  biggest point of infusion about how LLMs work.  
+There are two completely distinct processes and  you have to understand the difference. First,  
+you have training. During training, the goal  is to output probabilities for every possible  
+token. Then we calculate the error, the loss, and  the model learns from its mistakes. The only goal  
+is to get better. Then there's generation. This  is when you're actually using the model. It still  
+produces all those probabilities, but this time  we use them to sample just one token to create new  
+text. [Music] Two different jobs, one mathematical  foundation. Let's break down that foundation.
+Prediction: The Softmax Function
+After all the complex work inside the transformer,  the model outputs a raw score for every single  
+token in its vocabulary. This score is called  a loget. Now, these are just raw uncalibrated  
+numbers. They aren't probabilities yet. They  can be positive or negative, and they definitely  
+don't sum to one. Look at this example. After  the input, the cat sat on the the model might  
+output these loit scores. You can see Matt has a  high score of 3.2, 2. Rug is 1.3, floor is 0.5,  
+and moon is way down at -2.1. Clearly, Matt is the  front runner, but these scores are messy. To turn  
+them into clean probabilities we can actually use,  we apply a crucial function called softmax. Now,  
+the softmax formula looks intimidating, but  I promise you, it's just a simple three-step  
+recipe. Check out the formula on the screen.  All it's really doing is this. For each token,  
+you calculate e to the power of its loget. Then  you divide that result by the sum of all the  
+exponentiated logets. This simple operation  guarantees two things. First, every single  
+probability will be between 0 and 1. And second,  all the probabilities will add up to exactly 100%.
+Let's see it in action. We'll walk through our  simplified example step by step. Look at this  
+table. In the first column, we have our tokens.  In the second we have their legit scores. 3.2 for  
+Matt, 1.3 for rug and -2.1 for moon. Okay. Step  two, we exponentiate those loia http. So e to the  
+power of 3.2 is 24.53. E to the power of 1.3 is  3.67 and e to the power of -2.1 is a tiny.12. The  
+sum of all those is 28.32. Now for the final step,  we divide each of those exponentiated scores by  
+the total sum. For Matt, we take 24.53 and divide  it by 28.32, which gives us our final probability,  
+86.6%. For Rug, it's 3.67 / the total, giving us  13.0%. And for Moon, it's just 0.4%. And what's  
+the total? Exactly 100%. And just like that, the  model's messy scores are transformed into a clean,  
+understandable probability distribution. We  have an 86.6% chance for Matt, 13% for Rug,  
+and a tiny 4% for Moon. The model has officially  made its prediction. We've reached the output  
+probability stage in our diagram. So, what do we  do with this beautiful distribution? [Music] Well,  
+if we're generating text, we'd sample from this  to pick a word. But we're not. We're pre-training.  
+Our goal is to learn. And to learn, we need  to know how wrong we were. During training,  
+we know the correct answer was Matt. Our  model assigned an 86.6% probability to it.  
+Was that good enough? How do we turn this  into a single error number? That brings  
+us to the heart of the learning process, the  loss function that drives the entire system.  
+Learning: Cross-Entropy Loss
+All right. So, where did we leave off? The  model made its prediction for the input. The  
+cat sat on the It gave us this clean probability  distribution. The correct next token was Matt. And  
+our model was pretty confident, giving it an 86.6%  chance. But here's the billion dollar question.  
+How does the model learn from this? How do we turn  that 86.6% into a signal that says, "Good job,  
+but you can do better." We need a way to calculate  a single error number, a score that tells the  
+model exactly how wrong it was. This is the job  of the loss function. And for language models,  
+the function of choice is called cross entropy  loss. Now, the math behind cross entropy can  
+look terrifying, but the intuition is incredibly  simple. It all comes down to one idea, surprise.  
+Think about it. If you predict the correct answer  with high confidence, you're not surprised. This  
+means a low error. So, what we call low loss.  But what if you predict the correct answer with  
+very low confidence? You'd be very surprised  it was right. This means a high error or high  
+loss. The entire goal of training is to adjust  the model's weights to minimize surprise over  
+the whole data set. So how do we calculate this  surprise? Check out this formula. This is cross  
+entropy loss simplified for our task. The loss  is just the negative log of the probability of  
+the correct token. That's it. That is the entire  formula that drives learning. We only care about  
+the probability the model assigned to the single  right answer. All the other 50,256 probabilities,  
+they get ignored for this calculation. Let's  walk through this with our two scenarios. First,  
+a good prediction. As you can see on the slide,  the bottle assigned 86.6% probability to Matt. So,  
+the loss is the negative log of866, which  is out.14. That's a really small number.  
+It's a low surprise event. The model gets a tiny  good job signal. Now, let's look at scenario two.  
+A terrible prediction. Imagine the model was way  off and only assigned a 1% probability to Matt.  
+The loss would be the negative log of 0.01,  which comes out to about 4.6. That's a much  
+larger number. It's a high surprise event. Now,  the model gets a massive you were way off signal.  
+This single number, this measure of surprise  is the engine of learning. This loss value  
+is the starting point for the famous back  propagation algorithm. [Music] The error  
+flows backward through the entire network, and  it nudges billions of weights, all with one goal,  
+making the correct answer more likely  next time. Do this a billion times,  
+and the model learns the deep patterns of  language, grammar, and even world knowledge. Okay,  
+actually want to use the model? When we're not  trying to learn, but trying to create. When you  
+call the OpenAI API or use ChatgBT, you're in  generation mode. The model produces the exact  
+Controlled Generation: Temperature & Top-P
+same probability distribution, but instead of  calculating loss, it has to pick a single word.  
+Now, you might think easy, just pick the word  with the highest probability every time. But  
+that would be a disaster. The text would be  completely deterministic, incredibly boring,  
+and it would get stuck in these weird repetitive  loops. To create interesting and creative output,  
+the model samples from the probability  distribution, and we get to control this  
+sampling process. If you've ever used the API,  you've definitely seen these parameters. Look at  
+this code snippet. We've got our prompt. The  weather today is and then these two numbers,  
+temperature and top P. So, what do temperature  and top P actually do? Let's break them down.
+First up is temperature, the creativity knob.  Its mechanism is actually pretty simple. It  
+modifies the raw loget scores before they go into  the softmax function. Check out the formula here.  
+The adjusted lojits are just the original lojits  divided by the temperature. So what does that do?  
+Well, if you set a low temperature like 0.2,  the distribution gets much sharper. The model  
+becomes very confident in its top pig. [Music]  You'd use this for things like factual answers  
+where you want precision. But if you set a high  temperature like 1.5, the distribution flattens  
+out. This gives the less likely, more creative  words a better chance of being picked. You use  
+this for more creative outputs. Next, we have  top P. The quality filter, top P, which is also  
+called nucleus sampling, is our diversity filter.  Its job is to let the model be creative, but stop  
+it from saying something completely nonsensical.  Instead of considering all 50,000 possible tokens,  
+it works like this. First, it sorts all the tokens  by their probability. Second, it adds them up one  
+by one until it hits the threshold you set. And  finally, it samples only from that little group,  
+that nucleus of plausible tokens. So if you set  top P to 0.1, the model is only allowed to sample  
+from the most likely tokens that make up the top  10% of the probability mass. This is very focused  
+and safe. But if you set top P to 0.9, the model  samples from a much wider nucleus of plausible  
+tokens. This allows for way more diversity without  ever even considering the garbage tokens way out  
+in the long tail. Let's see this in action. It'll  make everything click. Look at this table. It  
+shows how changing the temperature dramatically  alters the final probabilities for our prompt.  
+The weather today is at the base temperature  of 1.0. Sunny has a 40% chance. Cloudy has 30%  
+and so on. Make sense? Now look what happens when  we drop the temperature to 0.5. The distribution  
+gets laser focused. The probability for sunny  jumps from 40% to nearly 63%. The model becomes  
+almost certain that's the right word. Okay,  now let's crank it up. At a temperature of 2.0,  
+everything flattens out. The probabilities get  much more even. And look at the word beautiful.  
+Its chance is now jumped up to about 14%, giving  it a real shot at being selected. It lets the  
+model be a little more poetic. And that is the  complete output pipeline. We go from raw logits  
+to probabilities which drive both the training  loop and the generation process. And that is the  
+complete pipeline. You've now seen the entire  journey from a raw text file on the internet
+to a sophisticated model capable  of both learning and creating.
+You started this video seeing language models as  magic. But now you know the truth. It's a cascade  
+of brilliant interconnected ideas, all powered by  a simple, elegant process, learning from mistakes  
+on an astronomical scale. You have now mastered  the fundamentals of pre-training. Let's quickly  
+recap the core engine you just built. Check out  this slide. There were three core ideas. First,  
+we solved the data problem with a self-supervised  approach. By framing the task as simple next  
+token prediction, we turned the entire  internet into free training data. Second,  
+we brided the gap between human language and  machine numbers using tokenization. We broke down  
+text into these efficient subword pieces that the  model can actually process. And third, we closed  
+the learning loop. We saw how softmax creates  probabilities and how the loss function tells the  
+model how wrong it was, allowing it to predict,  get feedback, and learn over and over again.
+But our journey isn't over. Not even close. This  pre-trained model is a raw engine of knowledge.  
+It's an incredible predictor, but it's not a  helpful assistant. This leads to the two crucial  
+questions of what comes next. First question,  opening the black box. Throughout this whole  
+video, we've treated the core of the network as a  black box. But how does it actually remember the  
+Outro: What Comes After Pre-Training
+word Paris from 10 tokens ago? How does it weigh  the importance of different words to understand  
+the real context? Well, that all happens  inside the black box. And in the next video,  
+we're finally going to open it. We'll explore  the revolutionary transformer architecture  
+and its core engine, selfattention. Now,  for the second and maybe bigger problem,  
+going from a predictor to an assistant. Here's the  thing. A next token predictor is not a chatbot.
+If you give our pre-trained model the prompt,  "What is the capital of France?" It's training  
+on all that internet text might just lead it  to complete the sentence with another common  
+question like, "And what is its population?" It's  just completing a pattern it's seen before. It's  
+not actually answering your question. Turning  it into a helpful assistant requires a second  
+crucial stage called postraining. This is where  we introduce powerful techniques like supervised  
+fine-tuning or SFT and the very famous  reinforcement learning from human feedback,  
+RLHF. That's how we align the model with  what we actually want it to do. You now  
+have a solid foundation in how these incredible  models are built. The magic has been replaced  
+by understanding, and you're ready to  explore the deeper layers of modern AI.
