@@ -6,7 +6,7 @@ The inputs are fixed (they're the problem); the knobs we turn are the WEIGHTS.
 So we run gradient descent on the weights, using the chain rule to get each weight's blame.
 """
 
-from tiny_net import INITIAL_WEIGHTS, forward, loss, backward, step
+from tiny_net import INITIAL_WEIGHTS, backward, forward, loss, step
 
 x1, x2, y_true = 3, 2, 24               # the "crime scene": the first training example
 w = INITIAL_WEIGHTS

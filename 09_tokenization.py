@@ -8,7 +8,8 @@ A neural network only understands numbers, so text must become a list of integer
 """
 
 from collections import Counter
-import tiktoken                             # OpenAI's tokenizer library (installed with `uv add tiktoken`)
+
+import tiktoken  # OpenAI's tokenizer library (installed with `uv add tiktoken`)
 
 text = "The cat quickly jumped"
 

@@ -5,7 +5,12 @@ Feed every training example through the untrained network and measure how wrong 
 No learning happens here - this is pure calculation.
 """
 
-from tiny_net import DATA, INITIAL_WEIGHTS, forward, loss   # the network defined in tiny_net.py
+from tiny_net import (  # the network defined in tiny_net.py
+    DATA,
+    INITIAL_WEIGHTS,
+    forward,
+    loss,
+)
 
 w = INITIAL_WEIGHTS                     # w1=1, w2=2, w3=1, w4=1, w5=0
 print(f"Weights: {w}\n")

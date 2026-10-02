@@ -7,7 +7,8 @@ Mini-batch: the real-world compromise - sum the blame over a small group (e.g. 3
 """
 
 import random
-from tiny_net import DATA, INITIAL_WEIGHTS, forward, loss, backward, step, total_loss
+
+from tiny_net import DATA, INITIAL_WEIGHTS, backward, forward, loss, step, total_loss
 
 lr = 0.0001                             # same learning rate as section 5 (matches the video's numbers)
 names = ["w1", "w2", "w3", "w4", "w5"]

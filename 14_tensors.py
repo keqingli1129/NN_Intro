@@ -12,7 +12,7 @@ The 5-step recipe this whole series builds toward:
   5. reset          optimizer.zero_grad()
 """
 
-import torch                                    # installed with `uv add torch`
+import torch  # installed with `uv add torch`
 
 torch.manual_seed(0)                            # fix the random generator so every run prints the same numbers
 
