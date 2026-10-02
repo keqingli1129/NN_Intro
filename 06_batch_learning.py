@@ -23,7 +23,7 @@ print("Step 2 - blame per example (no updating yet):")
 total_grad = [0.0] * 5                  # one running sum per weight
 for (x1, x2), y_true in DATA:
     g = backward(w, x1, x2, y_true)     # this example's blame for each weight
-    print(f"  {str((x1, x2)):>6}: " + "  ".join(f"{n}={v:>6.0f}" for n, v in zip(names, g)))
+    print(f"  {(x1, x2)!s:>6}: " + "  ".join(f"{n}={v:>6.0f}" for n, v in zip(names, g)))
     total_grad = [t + gi for t, gi in zip(total_grad, g)]   # add it to the column totals
 
 # Note: the video shows 380 for example (1,4)'s w1 blame (total 924). The correct value is
@@ -37,7 +37,7 @@ print("\nDid it help every example?")
 for (x1, x2), y_true in DATA:
     before = loss(forward(w, x1, x2)[2], y_true)
     after_pred = forward(w_batch, x1, x2)[2]
-    print(f"  {str((x1, x2)):>6}: error {before:>5.0f} -> {loss(after_pred, y_true):>7.2f}  (pred {after_pred:.2f})")
+    print(f"  {(x1, x2)!s:>6}: error {before:>5.0f} -> {loss(after_pred, y_true):>7.2f}  (pred {after_pred:.2f})")
 print(f"Total error: {total_loss(w):.0f} -> {total_loss(w_batch):.2f}\n")
 
 

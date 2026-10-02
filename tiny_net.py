@@ -36,7 +36,7 @@ def loss(y_pred, y_true):
 
 def backward(w, x1, x2, y_true):
     """Backpropagation: trace the blame right-to-left and return dLoss/dw for all 5 weights."""
-    w1, w2, w3, w4, w5 = w
+    w1, _w2, w3, w4, _w5 = w            # w2, w5 never appear in a gradient formula
     h1, h2, y = forward(w, x1, x2)      # we need the forward values to compute slopes
 
     # The shared starting point of every chain - computed ONCE and reused below.
