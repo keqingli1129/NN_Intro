@@ -22,7 +22,7 @@ for (x1, x2), y_true in DATA:           # loop over the three examples
     diff = y_true - y                   # raw error (can be negative)
     sq = loss(y, y_true)                # squared error (always positive)
     total += sq                         # add to the total
-    print(f"{str((x1, x2)):>8} | {h1:>5.0f} {h2:>5.0f} | {y:>5.0f} {y_true:>5} | {diff:>5.0f} | {sq:>6.0f}")
+    print(f"{(x1, x2)!s:>8} | {h1:>5.0f} {h2:>5.0f} | {y:>5.0f} {y_true:>5} | {diff:>5.0f} | {sq:>6.0f}")
 
 print(f"\nTotal squared error = {total:.0f}   <- our enemy. Training should push this toward 0.")
 print("Why square? A plain sum of diffs (-13 - 19 - 2) could cancel out if signs were mixed;")
