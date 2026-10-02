@@ -11,3 +11,6 @@ wheels/
 plots/01_local_minima.png
 plots/01_parabola.png
 plots/02_bowl.png
+
+# Trained model saved by 29_training_loss.py
+checkpoints/

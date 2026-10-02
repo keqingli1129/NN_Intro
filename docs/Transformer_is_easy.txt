@@ -1,0 +1,747 @@
+Introduction
+You've used chat GPT. You type a question and  a perfect answer just appears. It feels like  
+magic. But what if I told you the entire secret  to that magic is this? Now, don't worry. I know  
+this looks like a wall of code. This is the  complete GPT2. And right here, this first part,  
+this is the causal self-attention block. It's the  absolute heart of GPT. We're going to break this  
+down completely. And the next piece is the MLP and  the transformer block. This is what processes the  
+information from the attention mechanism. It's  the thinking part of the network. And finally,  
+you put it all together into the full GPT2 model  class. It's just the embeddings, those transformer  
+blocks we saw, and an output layer. That's it.  These roughly 100 lines of Python contain all  
+the core architectural ideas behind multi-billion  dollar models like GPT. There is no hidden code,  
+no secret sauce. My promise to you is  simple. Give me 100 minutes and I will  
+make the transformer click for you forever. We  are going to walk through this file line by line.  
+You will understand not just what each line  does but why it's there. That is the key. The  
+magic will dissolve into understandable, elegant  engineering. This diagram is our road map. Look at  
+it here. We're going to see this a few times. We  will start at the very beginning with embeddings  
+which turn words into vectors. You can see them  highlighted in green at the bottom. Then we'll  
+build the core engine, the transformer block. You  see it here in orange. This is where the real work  
+happens. Finally, we'll build the output layer  that makes the prediction. That's the purple block  
+right at the top. The most important component is  causal self attention. It's all governed by this  
+one formula. A tension of q kv equals softmax of  qkrpose over the square root of d subk plus a mask  
+m all times v. I know this looks intimidating  now. I totally get it. Trust me, by the end of  
+this video it will be second nature. Every project  starts with a blueprint. For us that's the GPT  
+The GPT Config
+config. It's a simple data class holding all our  parameters. We have vocab size, block underscore  
+size, n underscore layer, n underscore head, n  underscore ebd, and dropout. These are the knobs  
+you turn to make the model bigger or smaller.  Let's look at this table together. We're going to  
+walk through this step by step. First up, we have  vocab size. This controls the vocabulary size,  
+or how many unique words the model knows.  For the real GPT2 small, this was 50,257.
+Next, block size. This is the context  window. It's how far back the model can  
+see at once. GPT2 could see 1,024 tokens  into the past. Then N layer. This is the  
+model depth. It's how many of those transformer  blocks are stacked on top of each other. More  
+layers means a more powerful model. The small  version had 12. After that comes n head. This  
+is the model limb commute. It controls how many  parallel conversations the attention mechanism  
+can have at once. We'll dive deep into this.  GPT2 also used 12 for this. And finally, N_EMD,  
+the embedding dimension. This is the size or  richness of the vectors that represent each token.  
+GPT2 used a size of 768. So by just changing  these numbers, the exact same 100 lines of  
+code can create a tiny toy model or the full  scale GPT2. It's incredibly flexible. With  
+our blueprint in hand, we're ready to lay the  first brick. Next, we will build the embedding  
+layers that turn symbol numbers into the rich  vectors our model needs. Let's get our hands  
+Token Embeddings
+dirty. Our journey starts with the very first  functional layer of the model. Let's look at  
+our code blueprint and find exactly what we're  building. Look here on the screen. We have our  
+class gpt2 which inherits from nnn.module.  Inside the init method, we are building this  
+line right now. The one that says self.wte equals  nn.bedding with config.vocab size and config.n_d.
+This is the word token embedding. The next  line wp. Well, that's the next chapter.  
+So why do we need this? What problem are we actually solving? Well, here's  the problem. Raw token ids. The input to our model  
+is a sequence of numbers like an array of 521  108. But these are just meaningless IDs from  
+a vocabulary list. A neural net can't do math  on them. It just doesn't work that way. Think  
+about it. The number 21 isn't 4.2 times more word  than the number five. That's absurd. The distance  
+between them is completely meaningless. So, how  do we give these numbers meaning? Our goal is to  
+map each token ID to a vector. A vector is just  a list of numbers representing a coordinate in  
+space. And here's the key idea. The location  of these coordinates should actually mean  
+something. Let me give you an analogy. Let's  think about representing colors. A bad way,  
+just like our token IDs, would be to assign them  arbitrary numbers. Maybe a dictionary where red  
+is one, orange is two, and blue is eight. A  computer sees eight and one but has no idea  
+that orange is supposed to be between red and  blue. The numbers are completely arbitrary. Now,  
+a good way would be to use vectors. We can  represent colors in a coordinate system.  
+Let's say the x-axis is redness and the y-axis is  bluess. In this system, red could be the vector  
+0.9 0.1. Orange could be 0.8 0.2. See, it's  super close to red. And blue could be 0.1,
+which is way far away from red. Now, the  distance between points is meaningful.  
+We're going to do the exact same thing for words,  but in a space with 768 dimensions. The mechanism  
+for this is the n.bedding layer in PyTorch. It's  nothing more than a giant lookup table. You can  
+think of it as a learnable coordinate book.  Let's build one and look inside. We'll import  
+torch and torch.n. We'll set up a tiny config  for our example. Let's say vocab size is 10 and  
+n_omd is 3. That's the number of dimensions  in our semantic space. The layer itself,  
+which we'll call token_bedding table, is just  nn.bing with vocab size and n_md. the book itself.  
+The actual coordinates are in theweight attribute.  Each row is a words coordinate. Let's print the  
+shape of our coordinate book. And then let's print  the actual content. And here's the output. Check  
+it out. The shape of our coordinate book is torch  size with 10 rows and three columns. Makes sense.  
+And the content of the book is a tensor filled  with initially random coordinates. You can see  
+the first row is the coordinate for token zero.  The second row is the coordinate for token 1 and  
+so on all the way down to token 9. And notice  it says requires grad equals true. This is the  
+core. It's really just a matrix of shape vocab  size by n_bd. That's all it is. And did you see  
+that requires grad equals true part? That's the  magic. It means during training, the model will  
+learn the best possible coordinates for each word  to help it make better predictions. The model  
+itself will figure out what redness and bless  mean for words. We've successfully transformed  
+our data. Our input of meaningless integers  like 251 becomes an output of rich 3D embedding  
+vectors. Each token now has a rich 3D semantic  representation. So what have we gained? We now  
+have a representation where words with similar  meanings will end up close to each other in this  
+highdimensional space. This is what enables the  famous vector math analogy. You've probably heard  
+of the vector for king minus the vector for man  plus the vector for woman is approximately equal  
+to the vector for queen. It's incredible. But  this representation has one massive flaw. It  
+is shredded and contextfree. The vector for the  word bank is identical in these two sentences.  
+Number one, I sat on the riverbank. Number two, I  withdrew money from the bank. The embedding layer  
+has no idea which bank we're talking about. It  just gives back the same vector every time. This  
+is the central problem the transformer is designed  to solve. How can a token's vector be dynamically  
+adjusted based on its context? To even begin to  answer that, we first need to give the model a  
+Positional Embeddings
+sense of order. Let's locate our next component  in the code blueprint. We've built the word token  
+embedding the WTE. Now we are building this line  right now self.WP WP which is another innind.  
+layer. This is for the word positional embedding.  So how do we do it? The solution used in GPT is  
+wonderfully simple and elegant. Think about this.  Just as we learned a unique vector for each word,  
+we will now learn a unique vector for each  position. It's that simple. Each position gets  
+its own unique vector. So there's a vector  that literally means I am at position one,  
+another for I am at position two and so on  all the way up to our maximum sequence length,  
+the block size. And how do we implement this? It's  another in embedding layer. It's a lookup table,  
+but this time for positions, not for words. Now,  you're probably asking the key question. Why  
+does adding the position vector to the word vector  work? Won't that just scramble all the information  
+we so carefully created? Here's the key insight.  It works for a few reasons. First, they exist in  
+the same space. Both the word vectors and position  vectors live in that same 768dimensional space.  
+Second, adding them creates a unique point  in that space. The model learns to create  
+positional vectors such that adding them to a word  vector creates a new distinct representation. So  
+the word 'the' at position 5 is now a completely  different point from the word 'the' at position  
+20. The network learns to understand  this distinction. Let's see this in code.  
+It's always the best way to make it click. Okay,  let's walk through this together line by line.  
+First, our tiny config. B, T, and C are 2, 5, and  three. That's our batch, time or sequence length,  
+and channels or embedding dimension. Our vocab  size is 10. And our block size, our model's  
+maximum sequence length, is 8. Now for the layers.  First we have the same token embedding table from  
+the last section. Nothing new there. And now the  new one, the position embedding table. Notice  
+its vocabulary is the block size. It has eight  possible positions it can represent. Okay. Next  
+up, the input data. We'll create a random tensor  of token IDs called idx with a shape of 2x5.  
+All right, step one, get the token embeddings.  Just as before, we pass our idx into the token  
+embedding table. The result talk worship has a  shape of 2x 5x3. Now for step two, the new part,  
+getting the positional embeddings. We only need  the positions for our current sequence length t,  
+which is five. So we use torch.arrange a range  from 0 to t, which gives us a tensor of 0 1 2 3  
+4. We then look these position ids up in our new  position embedding table. The result pause embed  
+has a shape of 5x3. And for step three, we combine  them. It's just simple addition. X equals talkb  
+plus pause embeds. Finally, let's print the shapes  and see what happened. And here's the output. The  
+shape of our token embeddings is torch size of  253. The shape of our positional embeddings is 53.  
+And the shape of the final combined embeddings is  253. Now look at those shapes again. How can you  
+add a 2x 5x3 tensor to a 5x3 tensor? The answer  is PyTorch uses broadcasting. PyTorch is smart.  
+It automatically takes that 5x3 position tensor  and adds it to each of the two sequences in our  
+batch. It just works. It's incredibly efficient.  This also answers another key question. What if  
+our sequence length is less than the block size?  This is the common case. Our block size is 8,  
+but our current sequence length t is only five.  The solution is that smart line of code torch a  
+range from 0 to t. It only generates the positions  for the actual sequence length we're processing  
+right now. The result, perfect automatic handling.  It just works. We have now prepared the input for  
+the main event. Our tensor X contains vectors  that are now aware of both a token's identity  
+and its absolute position in the sequence. This  is the input that will flow into the stack of  
+transformer blocks. It's time to build the heart  of the machine. We've laid the foundation. Every  
+word has a vector. Every position has a  vector. But we still have the riverbank  
+versus money bank problem. Our model has no way  to adjust a word's meaning based on its context.
+Self-Attention Intuition
+This is the heart of the transformer.
+To make this crystal clear, let's forget code for  a moment and focus on one single ambiguous word.  
+Crane. First sentence, the crane ate a fish. Here,  crane is obviously a bird. Second sentence, the  
+crane lifted the steel. Here, crane is a machine.  Right now the starting vector for crane is  
+identical in both sentences. We need a mechanism  to update this vector based on its neighbors. That  
+mechanism is called self attention. And this is  its formula. Attention of qkv equals softmax of  
+qranspose over the square root of d subk all time  v. H I know it looks complex but by the end of  
+this section you'll understand it intuitively.  The entire process happens in three steps. One  
+scoring, two normalizing and three aggregating.  But first what are Q, K and V? They are three  
+distinct vectors for every single word created by  projecting the input vector X. The query or Q is  
+the word's search query. It's what it's looking  for. The key or K is the word's label or keyword.  
+It's what it is. And the value or V is the  word's payload, the information it offers. Now,  
+you might be asking a brilliant question. Why do  we need a separate value vector? Isn't our input  
+vector X already the information? The V vector is  a transformed version of X packaged for others to  
+consume. Look at this table. The input vector  X is like your entire knowledge and resume.
+It's the raw complete information. But the  value vector V, that's your prepared elevator  
+pitch. It's packaged consumable information  that's ready to be aggregated. It's made from  
+a learned transformation of X. The model learns  the best elevator pitch for each word. Okay,  
+analogy over. Let's see the numbers. We'll use a  dead simple 2D space. Dimension one represents is  
+it an animal and dimension two represents is it a  machine. Here are the vectors for our words. Check  
+out this table. Notice the crane vectors are all  ambiguous like 7.7. But ate and fish are high on  
+the animal dimension and lifted and steel are high  on the machine dimension. All right, sentence one.  
+The crane ate a fish. We're going to walk through  this step by step. First up, scoring. The crane's  
+query, which is 0.70.7, is going to probe every  other word's key. Let's do the math. The score  
+for crane looking at itself is 0.70.7 dotted  with 0.70.7 which equals 0.98. That's a high  
+self-affinity. Now the score for crane looking at  8 is 0.70.7 dotted with 0.90.1. That equals 0.70.  
+A high match. And crane looking at fish. It's  0.70.7 dotted with 0.80.2 which also equals 0.70.  
+Another high match. Step two, normalizing. We take  those raw scores 0.98, 0.70, 0.70 and we run them  
+through softmax to convert them into percentages.  The result, our attention weights are 0.4  
+4 0.3 0.3 This is the aha moment. Crane has  decided it will listen 40% to its original self,  
+30% to 8, and 30% to fish. Okay, step three,  aggregating. We take those weights and multiply  
+them by the value vectors. So the new vector for  crane is 0.4 4 * the value of crane which is 050.5
+plus 0.3 * the value of 8  0.90.1 plus 0.3 * the value  
+of fish 0.80.2 that gives us 0.20.2 plus 0.270.03
+plus 0.24.06. The new vector for crane is now 0.71  0.29. It is heavily skewed towards dimension one  
+animal. The ambiguity is resolved. Now let's do  sentence two. The crane lifted the steel. The  
+process is the same. So let's move a bit faster.  First scoring. The crane's query is the exact same  
+as before. It probes the new words. And look at  this. The scores are identical. 0.98 0.70 0.70. So  
+for step two, normalizing the attention weights  are the same. 0.4 0.3 0.3. Here's the kicker.  
+They're applied to different context words. So for  our final step, aggregating, we take our weights  
+and apply them to the new value vectors. It's  0.4 * the crane value plus 0.3 * the lifted value  
+plus 0.3 * the steel value. This becomes 0.20.2  + 0.030.27 plus 0.06 0.24. And there it is. The  
+new vector is 0.29 0.71. Now heavily skewed  towards dimension 2 machine. The exact same  
+initial crane vector has been transformed into two  completely different contextaware vectors. This is  
+the power of self attention. It's a communication  mechanism that allows every word to dynamically  
+pull in information from its context to refine  its own meaning. We've built the intuition.  
+Attention Implementation
+We saw how the word crane could resolve its  ambiguity by listening to its neighbors. Now  
+it's time to translate that exact process  into the language of linear algebra. Fast,  
+efficient matrix operations. Our map for this  section is the formula itself. Look at this on  
+your screen. We are going to build this step by  step. Attention of Q, K, and V equals soft max of  
+Q * Krpose divided by the square root of D subK.  All of that time V. I know, I know it might look  
+a little intimidating, but we are going to build  it piece by piece and it'll make perfect sense.  
+First, we will build this with raw tensors to  see every single number. Then we will encapsulate  
+that logic into a clean, reusable PyTorch node.  Part one, the raw tensor walkthrough. Let's use  
+a simple four-word sentence. So, t= 4. We'll  use a tiny embedding dimension c= 2. And we'll  
+process one sentence at a time. So, b equals 1.  Okay, let's import torch torch.n and a few other  
+things we'll need. We set bc to 1 4 and two. Now,  here's a pretend input tensor from our embedding  
+layers for the sentence, a crane ate fish.  We'll call it x. It's just a torch.tensor with  
+the values you see here on the screen. Step one,  projecting X into Q, K, and V. To get our query,  
+key, and value vectors, we use learnable  linear transformations. These are just  
+standard PyTorchn.linear layers. So, we'll define  a QC_RJ, a K underscorep, and a V underscorep.
+Now, just to make this tutorial  reproducible, we'll manually set   the weights using torch.mmanual seed42. This  way, you can get the exact same numbers I do.  
+And now we perform the projections. Q= Q ofX,  K= K_ra ofX, and V= V_ra of X. Simple as that.  
+Let's track our tensor shapes. This is the  most important habit to build. Seriously,  
+look at this table. Our variable X has the shape  1 42. That's our batch of raw input vectors. After  
+the projection, Q, K, and V all have the exact  same shape, 1 4 2. They represent the query,  
+the key, and the value vector for each  of our four tokens. Okay. Step two,  
+calculate attention scores. This is the core of  the communication. We compute the dotproduct of  
+every token's query with every other token's key.  So Q has a shape of 1 42. To multiply it with K,  
+we need to transpose K's last two dimensions.  So K.Transpose transpose of -2, -1 gives us a  
+new shape of 1 2 4. The resulting shape, a 1x4x4  matrix. Here's the code. Scores equals Q at symbol  
+k.transpose -2, -1. And here are the raw scores,  the attention matrix. It's a tensor of size 1 44.
+Let's look at this closely. The first row  shows the scores for A looking at every  
+other word. The second row is for crane looking  at every other word. And look at that second  
+row. It has the highest score 1.3888 with itself.  This makes perfect sense. A word is usually most  
+related to itself. Step three and four. scale  and soft max. We scale for numerical stability.  
+Then we use softmax to turn each row into weights  that sum to one. So first we get d subk which is  
+just the size of the last dimension of k. Then  scaled scores equals scores divided by math do  
+square root of d subk. Finally attention weights  equals f.oftmax softmax of the scaled scores along  
+the last dimension. Step five, aggregate the  values. This is it. Now we use our calculated  
+weights to create a weighted average of the value  vectors. Our attention underscore weights tensor  
+has a shape of 144. Our V tensor has a shape of  142. The resulting shape is 142. Exactly what we  
+started with. The code is simple. Output equals  attention_weights at symbol v. And here's our  
+final output. A tensor of size 1 42 containing  our new contextaware vectors. [Music] Here is  
+a summary of the entire process. Look at this  table. Step one, we create Q, K, and V. Step two,  
+we multiply Q and K transpose to get raw scores.  Step three, we scale by the square root of D subK.  
+Step four, we apply soft max to get attention  probabilities. And step five, we multiply those  
+probabilities by V to get our final contextaware  output vectors. Success. We've transformed our  
+input X into an output of the exact same shape  where each token's vector is now contextaware.  
+Part two, encapsulating the logic in an NN module.  The raw tensor walkthrough is fantastic for  
+understanding, but in practice, we package this  logic into a reusable class. This makes our code  
+clean, organized, and easy to stack. Here is the  final reusable module. By the end of this section,  
+every single line will be crystal clear. We  define a class single head self attention  
+that inherits from nn.module. Inside the init, we  define one linear layer. And in the forward pass,  
+we do all five steps. Let's look at the  underscore_init method. the fused linear  
+layer. Instead of three separate linear layers,  we use one larger, much faster one. The manual  
+walkthrough on the left is conceptually clear,  but the fuse layer on the right is computationally  
+efficient. We define a single layer C_ATR that  goes from our embedding dimension to three times  
+the embedding dimension. Now the forward method  projection and splitting. First we get qv equals  
+self c_atn of x. This produces a big tensor of  shape bt 3 * c. Then we do something clever. Q kv  
+equals qkv.split with c along dimension 2. This  carves that big tensor up into three chunks of  
+size C. This gives us back our separate Q, K, and  V tensors, each with the shape BTC. The rest of  
+the code is a direct one:one implementation of the  formula we just walked through. It's identical. It  
+works perfectly. We have successfully implemented  the core of self attention and formalized it in a  
+clean, professional module. However, our model  has a flaw, a big one. For language generation,  
+Causal Masking
+tokens can see into the future. In our  current setup, the word a can see crane,  
+eight ate, and fish. When we're generating  text one word at a time, that's cheating.
+Let's think about what we're trying to do. We  want to build an auto reggressive model. It's  
+a fancy term for a model that generates text one  token at a time. When predicting the next word  
+for a crane 8, its decision must be based only  on tokens it has already seen. A crane 8. It  
+cannot be allowed to see the actual answer. Fish.  But look at the attention matrix we calculated.  
+Check this out. The first row for A is attending  to all four tokens. That's cheating. The second  
+row for crane also attends to all four tokens.  This is a huge problem. A token at position T  
+must only be allowed to communicate with tokens  from the past. From positions zero up to T.  
+It cannot see the future. The solution is as  elegant as it is effective. The causal mask. We  
+will modify the attention scores before softmax.  We mask out future positions by setting their  
+scores to negative infinity. Now why negative  infinity? This is the key technical trick. The  
+softmax function involves an exponential. You see  the formula here. It's e to the power of x sub i  
+/ the sum of all the e to the power of x's.  So what is the exponential of infinity? e to  
+the power of negative infinity is approximately  zero. By using negative infinity, we force the  
+attention weights for any future tokens to become  zero. It's brilliant. Let's see this in action.  
+This is the visual aha moment. We'll start with  the setup raw scores. We pick up with our scaled  
+scores matrix from earlier. You remember this  one, right? The shape is 1 144. I'll just put the  
+tensor up on the screen here. Step one, create  the mask. A lower triangular matrix is perfect  
+for this. We can get one with torch.trill. Ones  are positions we keep and zeros are the future  
+positions we're going to block. So we set t equals  4 and our mask is torch.trill of torch1s of t t.  
+And here's the mask it creates. Look at this.  Row zero for a can only see column zero a makes  
+sense. Row one for crane can see columns zero  and one. So a and itself. The zeros are what  
+block those future connections. Step two, apply  the mask. We replace all values in scaled scores  
+with negative infinity wherever our mask is equal  to zero. The code is masked scores equals scaled  
+scores.mmasked fill where mask equals equals 0  with float of negative infinity. And here are  
+the scores after masking. Look at that beautiful  upper right triangle. It's all negative infinity.
+Perfect. All future positions  have been obliterated.   Step three, rerun softmax. Now let's apply softmax  to these masked scores and watch the magic happen.  
+Attention major equals fs softmax of masked scores  along the last dimension. And here are our final  
+causal attention weights. This is it. The upper  right triangle is now all zer. A only attends  
+to itself 100%. Crane attends to A and itself.  Eight attends to a crane and eight and so on.  
+We have fixed the time traveling bug. Let's look  at this table for the unmasked attention. Could  
+crane attend to fish? Yes. Could eight attend  to fish? Yes. But now with causal attention,  
+the answer to both is no. 0%. Problem solved.  Part two. Encapsulating in the inend module.  
+Let's look at the init method and a cool function  called register buffer. We need to store our mask  
+as part of the module, but it's not a trainable  parameter. For this, we use register buffer. So,  
+inside our class causal self attention, we call  self.register buffer. We'll name it bias and  
+we give it our torch.trill mask. So, quick quiz.  What's a buffer? A buffer is a tensor that is part  
+of the model state. It gets saved with the model's  state [ __ ] It moves to the GPU with 2 device,  
+but it is not a model parameter. So, it is  not updated by the optimizer. It's perfect  
+for our fixed causal mask. Now, for the forward  method, the forward pass is updated with one  
+crucial line right before the softmax. After we  calculate our scaled scores, we add the new line.  
+Scaled scores equals scaled scores.mmasked  fill. Using our stored buffer self.bias,  
+bias. We slice it to match the current sequence  length t. And again, wherever it's zero, we fill  
+with negative infinity. Then we just run softmax  like before. We have now built a fully functional  
+causal single-headed attention mechanism. It  can learn context, but it can no longer cheat.
+But it's still just a single attention mechanism.  It's like one person in a meeting trying to track  
+everything at once. Grammar, meaning, long range  context, all at the same time. That's a lot of  
+Multi-Head Attention
+pressure. To make it truly powerful, we need to  allow it to have many conversations at the same  
+time. So, what's the solution? You hire a team of  specialists. This is the core idea of multi- head  
+attention. Instead of one overworked mechanism, we  have several working in parallel. Head one might  
+become a specialist in syntax, you know, verb  object relationships. Head two might specialize  
+in semantics like related meanings. Head three  might track pronoun references and so on. The  
+entire process follows a simple narrative. Look  at this diagram. It's just split, then attend,  
+then merge. That's it. Part one, the raw tensor  walkthrough. Let's use the actual dimensions from  
+the GPT2 small model to make this real. Our  embedding dimension C is 768. The number of  
+heads N head is 12. And that means the dimension  per head dim is c / n head which is 64. Okay,  
+let's walk through this together step by step.  Step one, splitting c into n head and head dim.  
+We'll start with a dummy Q tensor with a realistic  shape. Let's say Q equals torch.rand randen with B  
+T C. So a batch of one, a sequence length of four,  and our embedding dimension of 768. First, let's  
+look at its starting shape. We print the original  Q shape, and we get torch size of 1 4 768. Makes  
+sense. Now for step 1.2, the dot view operation.  Here's where we carve up that last dimension.  
+The code is QC reshaped equals Q dot view  with B T N head and head dim. And look at  
+the new shape after dot view. It's torch size  of 1 4 1264. We've successfully created our  
+head dimension. But we're not done. Step 1.3,  thetranspose operation. This is so important.  
+We need to bring the number of heads  dimension to the front. This isolates   the heads so PyTorch can process them all in  parallel. The code is Q_fal Q_res.transpose.  
+Switching dimensions 1 and two. So the  final reshaped Q shape is now 1 12464.
+The key insight is in that final transpose.  We move the n head dimension to the front. So,  
+PyTorch's broadcasting will treat it  like a new batch dimension. All our   attention math will now happen  12 times at once independently.
+Step two, run attention in parallel. We do  the exact same reshaping for K and V. So K  
+underscorefinal and V underscorefinal both get  reshaped and transposed into that same 112464  
+shape. Now for the attention calculation which  is happening 12 times at once. We multiply Q_fal  
+by K_fal transposed. That's a B NHTD matrix  multiplied by a BNHDT which gives us a BNHT.  
+Then we scale it. we apply softmax and finally  we multiply the attention weights by v_fal. So a  
+bnhtt matrix times a bnhthd gives us our final  output per head. And if we print the shape of  
+the output from each head, we see torch size of  112464. Perfect. Each of our 12 specialists has  
+done its job. Step three, merging the heads.  Time to bring the team back together. First,  
+we transpose and reshape to merge the heads.  The code is merged_output equals output_per  
+head.transpose12 followed by contiguous and  viewbtc. And if we check the shape of the  
+merged output, it's back to 14768. Then we pass it  through the final projection layer. C_proj equals  
+NN.linear CC and final_output equals C_proj of  our merged output. The shape of the final output  
+is 14768. Here's the entire journey in one table.  First, we split the heads going from BTC to BNHTD  
+to prepare for parallel computation. Second, we  run a tension where each head computes context  
+independently keeping the same shape. Third, we  merge the heads going back from BNHTD to BTC to  
+combine all the insights. And finally, a final  projection mixes the information keeping the BTC  
+shape. And we're back. Each token's vector now  contains the combined contextaware information  
+from all 12 attention heads. [Music] Part two  encapsulating in the NN do module. Let's look at  
+the init method. First we add the final projection  layer and an assert to make sure the dimensions  
+are compatible. Inside our causal self attention  class, we have self.cpoints equals nn.linear from  
+config.n n prime to config.n calls it. Simple as  that. Now for the forward method. Part one is the  
+split. We get our B, T, and C from the input  size. We get Q, K, and V. And then we do the  
+exact same view and transpose operations we just  walked through manually. Q equals Q do.bt self.n  
+headdarms and then.transpose12. We do the same  for K and V. Next, the forward method part two,  
+attend. This should look very familiar.  We run causal self attention on each head  
+in parallel. We calculate at with the matrix  multiplication and scaling. We apply our causal  
+mask using masked fill. We run softax and we get  our output y by multiplying at and v. And finally,  
+the forward method, part three, merge. We take  our output Y, we transpose it, make it contiguous,  
+and view it back into the BTC shape. Then we pass  it through our final projection layer. Y equals  
+self. CROJ of Y, and we return Y. Every single  line in this module should now be crystal clear.  
+We have successfully built the communication  layer of the transformer. That was the causal  
+self-attention module. It's the big group meeting  where all the tokens get together and share  
+information. But after a big meeting, what do you  do? You go back to your desk to sit and think. You  
+The MLP Layer
+process all that new information on your own. This  is the exact role of our next component, the MLP,  
+the thinking layer. And after the sheer complexity  of attention, this is refreshingly simple. Check  
+out the code we're about to build from gpt2in. py.  We have a class mlp that inherits from nn.odule.  
+Inside the init we have a fully connected layer  called FC, a projection layer called proje and a  
+dropout layer. And the forward pass is just a few  lines. That's it. So let's break down the roles.  
+The attention layer allows tokens to interact  with each other. That's the communication part.  
+The MLP layer however processes information for  each token independently. This is the computation  
+or thinking part. This structure communication  followed by individual computation repeated  
+over and over is what gives the transformer  its power. The standard architecture for the  
+MLP in a transformer follows a pattern I call  expand and contract. Let's walk through it. One,  
+expansion. Using the FC layer, we project from our  embedding dimension n embed dimension up to four  
+times that size. Two, nonlinearity. We apply an  activation function, in this case, jello. Three,  
+contraction. Using the prod layer, we project that  huge vector back down to the original n embedd  
+size and four dropout for regularization. Okay,  before we build the whole MLP, let's demystify  
+its core component n.linear. It's honestly just  simple math. The output is just the input times  
+the weight matrix transposed plus a bias. No more  magic. Let's prove it. Our problem. We want to  
+demystify nn.linear by projecting a vector of  size 2 up to a vector of size 4. We'll import  
+torch and torch.n. We set our input channels C  in to two and our output channels C out to four.  
+Then we create our linear layer. Now this layer  has two learnable parameters. First the weights  
+which is a matrix of shape C out by C in. So 4x  two for us. Second the biases which is a vector  
+of shape C out. So just four. To make this super  clear, let's manually set the weights and biases  
+to some nice simple numbers. For the weights,  we'll set the data to a torch tensor. The first  
+row is 1 0. The second is - 1 0. The third is  02. And the fourth is 0 -2. For the biases,  
+we'll just use 1 1 -1 and -1. Finally,  our input vector will be 0.5 and0.5. Okay,  
+let's manually calculate just the first output  element together. Output at index 0 equals input  
+at 0 * weight at 0 comma 0 plus input at 1 *  weight at 0.1 plus the bias at 0. Plugging in  
+the numbers, that's 0.5 * 1.0 + - 0.5 * 0.0  + 1.0, which simplifies to 0.5 + 0 + 1.0,  
+0 which equals 1.5. Now let's see what PyTorch  gives us. We call output vector equals linear  
+layer of our input vector and we print them both  out. The input is 0.5 minus 0.5 and the output  
+is 1.5 0.5 -2.0 and 0.0. It matches perfectly.  That's it. See? No magic at all. Okay, now let's  
+trace a single token's journey through the entire  MLP. Our input will be a single token vector with  
+C equals 2. The MLP will expand it to 4 * C,  which is 8. So our input X is a tensor of shape  
+1 2 with the values 0.5 and0.5. Step one, the  expansion layer FC. This is an NN.linear linear  
+layer going from two dimensions to eight. We'll  set a manual seed for reproducibility and create  
+some random weights and biases. Then we calculate  Xpanded equals FC of X. And after the expansion  
+layer, the shape is now torch size of 18. And the  values are something like 0.52 minus 1.02,0.32
+and so on. Our vector has successfully been  expanded. Step two, the GelU activation. Gelu  
+is just a smooth alternative to ReLU that squashes  negative values towards zero. If you look at the  
+table, an input of 2.0 becomes about 1.95. But  an input of -1.0 gets squashed down to about0.04.
+So let's apply it. X_activated  equals F.GELU of X_expanded.
+After Gelu, the shape is still 118. But  look at the values. The positive numbers  
+are mostly the same, but the negative ones like  minus1.02 have been squashed down to minus0.04.
+This is that critical nonlinear step.   Step three, the contraction layer prod. Now we  just project that eight-dimensional vector back  
+down to our original two dimensions. Proj equals  n inn.linear from 8 to 2. We set another seed,  
+create some random data for it, and then  x projected equals prod of x activated.  
+After the contraction layer, the shape is back to  torch. is 1 2 and the values are now 0.33 and0.15.
+And finally, step four, drop out. The last step  is to apply the dropout layer. During training,  
+this layer randomly sets some elements to  zero for regularization. But during inference,  
+when we're actually generating text, the  dropout layer does absolutely nothing.  
+it just passes the data through. So the final  result, our input was a vector with 0.5 and0.5.  
+It went through the MLP's thinking process and  the output is a new vector with 0.33 and0.15.
+The key takeaway here is that the MLP transforms  the input vector while preserving its shape.  
+It goes from B T C and it ends up as B T C. And  this is super critical because it allows us to  
+add this output back to the original input using  something called a residual connection which we'll  
+explore next. So let's recap. We have now built  both major components of our transformer block.  
+We have causal self attention for communication  and the MLP for thinking. Now we need to assemble  
+them. We need to put them together into a robust  repeatable block. [Music] But we can't just stack  
+them one after another. To make deep learning  actually work, we need a special ingredient.
+Residual Connections
+We need the residual connection. Our entire  focus in this section is on the humble plus  
+sign. Let's look at our gpt2_mmin. py file inside  the block class. The class has an init method with  
+layer norm attention another layer norm and an  mlp. But the magic is in the forward method. Look  
+at this line right here. This is our focus.  The addition operation x= x + self.add add  
+attend open parenthesis self.l1 open parenthesis  x close parenthesis close parenthesis and look it  
+happens again right after x= x plus self.mlp open  parenthesis self.ln2 ln2 close parenthesis open  
+parenthesis x close parenthesis. This simple  pattern x= x + something is one of the most  
+important breakthroughs in the entire history of  deep learning. So why why can't we just do this x  
+goes to attention then to the MLP then to the next  block? Why do we need that extra plus x? Well,  
+when you build a very deep network, you run into  a huge problem called the vanishing gradient. It's  
+like a long game of telephone. You know how that  works, right? The learning signal has to travel  
+backward all the way from the final output through  every single layer back to the very first one.  
+With each step backward through a layer, the  signal gets a little distorted or weaker and  
+weaker until it has vanished. The early layers  of the network learn absolutely nothing. The  
+residual connection provides a brilliant solution  by creating a shortcut or an express lane. Look at  
+this diagram. Your input X comes in at the top  left. It flows into a sub layer which contains  
+layer norm and causal self attention. That sub  layer does its computation and its output goes  
+to this plus sign. But here's the magic. Look at  this other arrow. The original input X also flows  
+directly to that plus sign completely bypassing  the sub layer. That's the residual connection,  
+the express lane. During back propagation,  the gradient can flow directly through this  
+addition operator. It completely bypasses all the  transformations inside the attention layer. It's  
+an uninterrupted highway for the gradient  to travel back in time. This fundamentally  
+changes what the network is trying to learn.  Without residuals, you're telling the network,  
+"Here is a blank canvas. Paint a masterpiece. Good  luck with that." With residuals, it's easy. You're  
+saying, "Here is the current painting, which  is X." Now, just make these small adjustments,  
+which is the output of self.lbl. It is so  much easier for a network to learn how to  
+make small iterative adjustments than it is to  learn the entire transformation from scratch   at every single layer. Let's do a walkthrough  with numbers to see just how simple this is.
+The operation is just a simple element-wise  addition. We'll start with an initial input vector  
+for a single token. We'll call it X initial.  Let's say it's a tensor with the values 0.2,  
+0.1, 0.3, and 0.4. [Music] Now that input  goes through the attention sub layer and it  
+produces an output. We'll call it attention  output. This is the adjustment to be made.  
+Let's say its values are 0.1.2
+and0.3. Now for the residual  connection x= x + let's look  
+at the result. The original input x was 0.2 0.1.4.
+The adjustment from attention  was 0.1 minus 0.1.2.3.
+So the new value is just the sum. The value after  the first residual connection is a tensor with  
+0.3, 0.0, 0.5, and 0.1. It's that simple. It's  just addition. Critically, the shape of the tensor  
+remains unchanged. Look at this table. In step  one, the self.attension operation takes an input  
+of shape BTC and produces an output of shape BTC.  Its whole purpose is just to calculate the update  
+or the residual. Then in step two, the X plus  operation takes that same shape BTC and outputs,  
+you guessed it, BTC. Its only job is to apply  the update to the original. We have now added  
+the first piece of glue to our block. This express  lane is what allows us to build much deeper and  
+much more powerful models. But a highway with no  rules can lead to chaos. Let's dive back into our  
+Layer Normalization
+code. Let's look at our block class again. Our  focus this time is on these two lines self.l_1  
+and self.l_2 and more importantly where they are  applied inside the init method. You can see we  
+defined them right here. We have self.l_1 equals  inn.layerm and self.l_2 another inn.layerm. Now  
+here's the key part. Look at the forward method.  We apply layer norm before the data goes into the  
+sub layer. See it's x + self.tts of self.l_1  of x. And then we do it again before the MLP  
+layer. It's X plus self.mlp of self.l_2 of X. So  what on earth is this doing? Well, it's solving a  
+really big problem. The problem of trying to hit a  moving target. As data flows through the network,  
+the distribution at each layer is constantly  changing during training. the mean, the standard  
+deviation, it's all over the place. This is called  internal covariant shift. Think of it like this.  
+Each layer in our network is trying to learn,  but the target it's aiming for is constantly  
+moving. It makes it incredibly difficult for the  network to learn anything efficiently. It's like  
+trying to shoot arrows at a target strapped  to a bucking bronco. Good luck with that.  
+Layer normalization is the technique that tames  the Bronco. It acts as a stabilizer for each  
+individual tokens vector. This is really  important. It performs these steps. First,  
+it calculates the mean, which we'll call  mu, and the variance sigma squared across  
+that single vector's embedding  dimension. That's the C dimension.  
+Second, it normalizes that vector to have a mean  of zero and a standard deviation of 1. Look at  
+this formula. The new vector xhat equals x - mu  divided by the square root of sigma squar plus a  
+tiny little epsilon to prevent dividing by zero.  And third, it applies learnable parameters gamma  
+and beta to scale and shift the distribution back.  The final output y is gamma x* xhat plus beta.  
+This gives the model back control after we've  stabilized everything. Okay, that was a lot of  
+theory. Let's walk through this with numbers. This  is how it will click. [Music] We're going to trace  
+the process for a single tokens vector and we'll  say its embedding dimension C is equal to four.  
+Step one, the input vector. Let's say we have this  tensor X token with the values 0.3, negative0.2,  
+0.8, and 0.5. Right now, if we check its mean is  about 0.35 and its standard deviation is 0.41.
+It's a moving target. Okay, on to step two,  normalization. This is the Xhat calculation.  
+We take our input X token, we subtract the mean  and we divide by the standard deviation. And  
+what do we get? Look at this. The normalized  vector Xhat is now0.12, -1.33, 1.09, and 0.36.  
+And its mean zero. its standard deviation one.  Perfect. The target is no longer moving. Now for  
+the final step, step three, applying the learnable  parameters gamma and beta. When we create a layer  
+layer like ln= nn.layer C, PyTorch initializes  two special parameters for us. The first is  
+layernorm.weight, which is our gamma. it  starts as a tensor of all ones. The second is  
+layerorm.bias our beta which starts as a tensor  of all zeros. So initially multiplying by one and  
+adding zero doesn't change anything.  But let's pretend the model has been   training for a while and it has learned that  a different scaling is optimal for the next  
+layer. Maybe it's learned that gamma should be  1.5 1 1 and 1 and beta should be 0.5 0 and 0.  
+Now we apply this to our nice stable normalized  vector. Y = gamma * xhat plus beta. And here's  
+what we see. Our final output vector is now 0.32,  -1.33, 1.09, 09 and 0.36. It's a stable, clean,  
+and optimally scaled input for the next part of  the network. Okay, one last crucial practical  
+detail. Porm versus postnorm. Look at this table.  We have two main styles. On the left is porm,  
+which is what we use in our GPT2 style model.  Its equation is X plus the sub layer of  
+layer of X. The normalization happens before the  sub layer. On the right is postnorm the original  
+transformer style. Its equation is layer norm of x  plus the sub layer of x. The normalization happens  
+after. Now here's the important part stability.  Porm is generally more stable. It makes it easier  
+to train very deep networks without needing fancy  learning rate schedules. Postnorm can be harder to  
+train for very deep models and often requires a  learning rate warm-up. In our code, you see X= X  
+plus self.at self.l1x. That is textbook porm. So  why does our code use prenorm? Because it's more  
+robust. By normalizing the input before it enters  the attention or MLP layers, we keep the values in  
+check and prevent the numbers from exploding.  It just makes training smoother. So with our  
+residual connections providing the express lane  and layer normalization acting as the stabilizer,  
+this is the payoff. We have meticulously built  every single component. The communication layer,  
+The Transformer Block
+the causal self attention, the thinking  layer, the MLP, the express lane,  
+our residual connections, and the stabilizer  layer normalization. Now we click them together.
+This is the code for the block class. This is the  fundamental repeating Lego brick of the entire  
+GPT2 model. That's it. I'm serious. That's really  it. And you already understand every single piece  
+of it. Let's look at the blueprint of a block. The  dunder and knit method. The constructor is just an  
+assembly list. It's like the parts list for a Lego  set. First, we have self.l_1 ln_1 equals nn.layer  
+norm. That's the stabilizer we just built. Then  self.attension equals causal self attention.  
+That's the communication layer you built. Then  another stabilizer self.l_2. And finally self.mlp  
+equals mlp the thinking layer. You built this  too. There is zero new complexity here. It's  
+just a container for the components we've already  mastered. The forward method orchestrates the flow  
+of data through these components and it follows  a simple powerful mantra. Normalize, process,  
+add. Let's trace the data's journey. Check out  this flow diagram. The input X comes in. It flows  
+into layer norm one. then causal self attention  and then it gets added back together with the  
+original input. That output then flows into layer  norm 2 then into the MLP and gets added back again  
+to produce the final output. Let's look at that  first sub layer the attention meeting. The code  
+is x= x + selfide of self.l_1 of x. Let's break it  down. First, we normalize. We apply self.ln_1 to  
+x. The input is stabilized. Simple enough. Second,  we process. That stabilized data enters the  
+self.appro, our communication layer. And third,  we add. The result of all that is added back to  
+the original X. That's the residual connection  at work. Now for sub layer 2, the thinking time.  
+The code is x= x + self.mlp of self.ln_2 of x.  It's the exact same pattern. First normalize.  
+We stabilize the output from the first sub layer  using self.ln_2. Second process. Each token thinks  
+about the new information inside the self.mlp. And  third add the output is added back again. It's so  
+elegant. The most critical property of this entire  block is that the shape of the output tensor is  
+identical to the shape of the input tensor. B T  C always. This is what makes the block perfectly  
+stackable. This stackability is the key to the  transformer's power. A single block is like a  
+single project meeting. It's a good first step,  but complex problems require more. To build a deep  
+understanding, we need a series of meetings, a  symposium. For example, meeting one or block zero  
+figures out basic grammar and syntax. Then meeting  two, block one, takes that and pieces together  
+higher level ideas. You fast forward all the way  to meeting 12, block 11, and it achieves deep,  
+nuanced, semantic understanding. This allows us to  distinguish between width and depth. Look at this  
+table. Let's walk through it. First, the concept  of width, which comes from multi head attention.  
+What does it do? It's parallel processing  within a layer. The analogy is a committee of 12  
+specialists in one meeting. Why? To analyze input  from many perspectives at once. Now let's look  
+at depth which comes from multi-layer models like  this. What does it do? It's sequential processing  
+across layers. The analogy here is a series of  12 meetings each refining the last. And why do  
+we do this? to build a hierarchical understanding  from simple patterns to abstract concepts. So how  
+do we code this series of meetings? We use a  special PyTorch container called nnn.module  
+list in the main GPT2 models dunder init method.  You'll see this line self.h h equals nn.module  
+list containing a list comprehension block  of config for underscore in range of config n  
+layer. This simple line creates n layer say 12  separate instances of our block. This brings us  
+to a crucial final question. Are the weights  shared between these 12 blocks? Absolutely  
+not. Each call to block of config creates 12  independent objects, each with its own unique  
+weights. Why is this essential? Well, think about  it. Layer 1 is processing raw embeddings. Layer 12  
+is making final refinements. Different layers  need different skills. By giving each block  
+its own set of weights, we allow each layer to  specialize in its part of the job. We have now  
+officially built our fundamental Lego brick and  we understand the strategy for stacking them.
+We have officially reached the summit. After  building every single component from the  
+ground up, we are now ready to assemble the final  model. This section will feel like a victory lap.  
+You are going to recognize every single  line of code we look at. You built this.
+Let's look at the init method of our final GPT2  class. This is the master blueprint, the one that  
+organizes every single layer we've discussed. Here  it is class gpt2 which inherits from nnn.module.  
+Inside the dunder init method we take in our  config object. We see three distinct parts.  
+This constructor perfectly follows the high-level  architecture we set out to build. Check out this  
+diagram. We start with input token ids which flow  into token and positional embeddings then through  
+dropout into our n transformer blocks. After that  there's a final layer norm then the language model  
+head and finally our output logits. It all fits  together. Let's walk through this init method  
+section by section and connect every line back  to the section where you mastered it. First up,  
+part one, the input layers. This is the entry  point of our model, converting raw token IDs  
+into meaningful vectors. We have self.wte, our  word vector dictionary that we built earlier.  
+Then self.wpe, WP the positional lookup table.  You remember that from earlier too. And finally,  
+self.drop for regularization to prevent  overfitting. Next, part two, the core processing  
+layers. This is the heart of the model, the  deep part of deep learning. Here we have self.h.  
+This single powerful line creates n layer say 12  independent instances of our block class. Data  
+flows through these blocks sequentially becoming  more refined at each step. Just like we discussed  
+and that brings us to part three, the output  layers. These are the final preparations before  
+making a prediction. We have self.l_f. This is a  final layer normalization that provides one last  
+stabilization step. It ensures the output vectors  are well behaved before the final prediction. We  
+mastered this concept earlier as well. We have  now defined almost all the structural components  
+of our model. We've built the entrance,  the main processing tower, and the final  
+stabilization stage. The only piece missing is  the most important one for a language model. The  
+layer that actually makes the prediction. How  do we go from these complex refined vectors back  
+to a probability distribution over our entire  vocabulary? [Music] We have reached the final  
+LM Head & Weight Tying
+architectural component of our GPT model. Our  data has traveled a long journey. It started  
+as embeddings, then went through that deep stack  of transformer blocks and was finally stabilized  
+by a final layer norm. We now have highly  contextaware vectors, one for each and every  
+token in our sequence. The shape of our tensor is  batch by sequence length by embedding dimensions  
+or BTC. But here's the thing. This is just an  internal representation. It's not a prediction.  
+So how do we use these rich 768dimensional vectors  to predict the single next word? Let's examine the  
+final piece of our GPT2 models init method. We've  seen all the other parts, the token embeddings,  
+the positional embeddings, the dropout, the  transformer blocks, the final layer norm. And  
+now this is the final architectural piece. self.lm  head equals nn.linear. And then a very interesting  
+line self.lm head.weight equals self.wte.weight.  weight. We'll come back to that second line in  
+a minute. So, what is this LM head? It's actually  just a simple NN.linear layer. Nothing fancy. Its  
+job is to project from our internal vector space,  that's the C dimensions, into the vocabulary  
+space, which has vocabiz dimensions. But here is  the brilliant twist. This projection, this simple  
+linear layer is applied independently and in  parallel to every single tokens vector along the  
+t dimension. So instead of making one prediction,  it makes t predictions. Let's look at this table  
+to see what's happening. Our input to this layer  is the tensor we've been working with with a shape   of BTC. The output from the LM head is a new  tensor we call logits. Its shape is B by T by  
+vocab size. And what does it mean? It contains a  raw score, a logit for every possible next token  
+for each of the T input positions. This brings  us to a crucial question. Why make T predictions?  
+Isn't that just wasteful? This is one of the most  brilliant design choices in the transformer. The  
+answer depends on whether you are training  the model or using it for generation. First,  
+let's talk about efficient training. When we're  training, we want the model to predict the next   word at every single position in the sequence all  at once. For example, if our input is a crane ate  
+fish which has a t of four, the model has to learn  multiple things simultaneously. Given a, it has to  
+learn to predict crane. Given a crane, it has to  learn to predict 8. And given a crane 8, it has  
+to learn to predict fish. Our logits tensor gives  us all the predictions we need in a single forward  
+pass. It's incredibly clever. Look here. Logits  at index zero in the t dimension is the prediction  
+based on just a. We'll compare this to the target  which is crane. Then logits at index one is the  
+prediction based on a crane. We compare that to  8. And finally logits at index 2 is the prediction  
+based on a crane 8 which we compare to fish. And  of course, we know this works because our causal  
+mask ensures the prediction at any position t  only uses information from tokens zero up to t.  
+This parallel approach is incredibly efficient for  training on a GPU. Okay, but what about number two  
+for generation or inference? When we want to  generate new text, your intuition is correct.  
+we are seemingly being wasteful. Imagine our input  is a prompt like a crane 8 where t equals 3. The  
+model runs a forward pass and produces logits of  shape 1x3 by vocab size. Now here's the key part.  
+We throw away the predictions from the first  two positions. We only use the prediction from  
+the final position logits sliced at minus one to  sample the next word. This might seem inefficient,  
+but it's a trade-off. The architecture is heavily  optimized for the massively parallel computations  
+needed for training. We just leverage that same  powerful architecture for inference, even if we  
+only need the result from the final time step.  It's a pragmatic and very effective choice. And  
+now for the grand finale. Let's look very closely  at the last two lines of our models dunder init  
+method again. self.lm head equals innin.linear and  then self.lm head.weight equals self.wte.weight.
+The second line is a simple but profound  optimization known as weight tying.  
+It's not just copying the weights. It is telling  PyTorch that the weight matrix for the LM head  
+is the exact same object in memory as the  weight matrix for our token embedding layer  
+WTE. They share the exact same weight matrix.  This means when back propagation updates one,  
+it simultaneously updates the other. They are  tied together. So why does this make perfect  
+sense? Let's analyze the roles and shapes of these  two weight matrices. Check out this table. First,  
+our WTE layer. Its weight attribute  self.wte.weight has a shape of vocab  
+size by nbed. Its role is to convert a token ID,  which is a row index, into a meaning vector. It's  
+an ID to meaning map. Now look at the lm head.  Its weight self.lm headweight also has a shape  
+of vocab size by n embed and its role to convert  a meaning vector into a score for each token ID.  
+It's a meaning to ID map. They have the exact same  shape and their functions are perfectly symmetric.  
+One goes from ID to meaning. The other goes from  meaning back to ID. The core insight of weight  
+tying is that these two operations should be  inverses of each other. The vector that represents  
+the meaning of the word cat should be the same  whether cat is an input or an output. It's  
+just logical. And the benefits are huge. First,  massive parameter reduction for GPT2 small. This  
+weight matrix has 50,257 rows times 768 columns.  That's roughly 38.5 million parameters. By tying  
+the weights, we eliminate the need to store and  train a second separate matrix of this enormous  
+size. We just saved almost 40 million parameters  with one line of code. It's absolutely brilliant.  
+Second, you get improved performance. This acts  as a powerful form of regularization. By enforcing  
+a sensible, logical architectural constraint,  it can prevent overfitting and lead to better,  
+more stable models. We've built the entire  GPT model architecture from the embeddings  
+all the way to the final language model  head. We have a fully assembled machine,
+but right now it's an engine full of millions  of randomly initialized weights. It can't write  
+a single coherent word. So, how do we teach it?  How does it learn? This section is all about that  
+Training & Loss Calculation
+process. It's about the journey of data through  our model to produce a single crucial number,  
+the loss. This loss value quantifies exactly  how wrong the model's predictions are,  
+and it's the signal we use to update every  single weight in the entire network. Let's  
+focus on the forward method. You've seen the  first half of this journey. Now, we're going  
+to complete it. Here's the code from our GPT2  class. We've already built the init method.  
+Now we're in the forward method which takes  self idx and an optional targets argument.  
+We know all the first parts the embeddings the  dropout the blocks the layer norm the lm head.  
+This all produces our logits tensor. Okay this is  our focus. Now you can see we initialize loss to  
+none. Then if targets is not none we calculate the  loss and it's all in this one line. loss equals  
+f.cross entropy of logits doview minus1 logs do  size minus1 comma targets doview minus one. How  
+does this one line teach the entire model? Let's  find out. The goal of training is beautifully  
+simple. It's called next token prediction. Given  a sequence of words, the model's entire job is to  
+predict the very next word. So for each chunk of  our training data, the input idx is the sequence
+and the targets are that same sequence  just shifted one position to the left.  
+Look at this example. If the input idx is a  crane 8, the targets are crane 8 fish. The  
+model has to learn to make these predictions  at every single step in the sequence. Let's  
+do a quick walkthrough of the forward method up  to this point. First, we get our embeddings. We  
+create token and positional embeddings to get our  initial BTC tensor. We've covered this x= self.we  
+WTE of idx plus self.wp of pause. Second, we  process it through the blocks. The tensor flows  
+through the stack of transformer blocks becoming  more and more contextaware for block in self.hx  
+equals block of x. Third, we get the logits. The  final vectors are projected into our logits tensor  
+which has a shape of BT vocab size. Okay, now for  the main event, calculating the loss, one number  
+to rule them all. We now have our logits which  are the predictions and our targets, the correct  
+answers. The final step is to compare them. Here's  that line again. Loss equals f.cross entropy. And  
+then we have those view calls inside. So what's  with the dot view? F.cross entropy expects 2D  
+inputs. The dot view function is simply PyTorch's  way of squashing dimensions together to get the  
+right shape. Let's make this crystal clear.  Look at this table. Our logits variable starts  
+with a shape of Bt vocab size. When we call dot  view on it, we reshape it to B * T, vocab size.  
+The purpose of this is to create a 2D tensor where  each row is a prediction for one specific token  
+position. Now for targets, it starts with shape  BT. When we call dot view minus1, it becomes a 1D  
+list of shape B * T. Its purpose is to be a simple  1D list of the correct answers, perfectly aligned  
+with the predictions we just made. Now for the  most important part of this entire section. How  
+does cross entropy actually calculate the loss?  The crucial point is that it calculates the loss  
+for each of the B * T predictions individually  and then [Music] it averages them to produce a  
+single final scalar loss value. It does not add  them up. It takes the mean. This is so important  
+because it keeps the loss on a consistent scale.  Whether your batch size is 8 or 8,000, it makes  
+training stable. Let's put it all together.  The full training loop, a story in six stages.  
+We're going to tell the complete story from a raw  stream of text all the way to a weight update.  
+Let's say our block size or t is four. Step one,  the raw data stream. Imagine our training data is  
+just one long river of token IDs. something like  5 12 8 21 6 33 9 4 15 7 2 and so on. Step two,  
+creating input target pairs from that  stream. We just grab chunks. For example,  
+sample 1 might have an idx of 5 12 8 21 and  its targets would be 12 8 216. Sample 2 would  
+pick up where that one left off. Its idx would  be 6 33 94 and its targets would be 33 9415.
+Now the batch, this is our unit of work. We stack  these samples to form a batch. Let's say with a  
+batch size of B= 2. This lets us process data in  parallel on a GPU. So our input idx has a shape of  
+2x4. You can see the two samples stacked on top  of each other. And our target tensor also has a  
+shape of 2x4 with the corresponding targets for  each sample. Okay, let's walk through this entire  
+six-stage process together step by step. This is  how the learning actually happens. First stage  
+one, the forward pass. The batch, our idx tensor  is fed into the model. The model processes both  
+samples and outputs a logits tensor of shape 2x  4 by vocab size. Easy enough. Next stage two,  
+loss reshaping. We prepare the logits and targets  for the loss function. Logits gets reshaped to  
+eight by vocab size and targets gets reshaped to  a flat list of eight numbers. 12 8 21 6 33 9 4  
+15 Stage three cross entropy calculation. The  function calculates the loss for each of the  
+eight individual pairs. Let's imagine the results  for the first prediction. Maybe the loss is 2.5.  
+For the second 3.1 then 1.9 4.2 and so on. we get  eight separate loss numbers. Now stage four, the  
+most important one, averaging. We average these  eight individual losses. So we do 2.5 + 3.1 and so  
+on divided by 8. And let's say our final loss is  3.0. That is our single scalar loss value. Stage  
+five, back propagation. We call loss.backward  backward on that single scalar value 3.0. PyTorch  
+then calculates the gradients for every single  weight in the model based on that average loss.  
+And finally, stage six, the weight update.  The optimizer takes one step. Optimizer.step  
+updates all the model weights, nudging them in a  direction that would have made that average loss  
+of 3.0 a little bit lower. This entire six-stage  process is one training step. For each batch,  
+there is only one backward pass and one weight  update. And it's all driven by the average  
+performance across all the token predictions  in that batch. We have now closed the loop.  
+We've gone from a raw stream of text to a trained  model. We have built the entire GPT architecture.  
+Autoregressive Generation
+We have understood how it's trained. Now it's  time for the payoff. It's time to unlock its  
+true purpose, generating new coherent text from  scratch. The process is called auto reggressive  
+generation, which sounds complex, but it's based  on a beautifully simple loop that you can probably  
+guess right now. The core idea, the generation  loop. Let's break it down. One, predict. Feed  
+the current sequence in. Get a guess for the next  word. Two, sample. Roll the dice on that guess  
+and pick one new word. Three, append. Add the new  word to the end of the sequence. And four, repeat.  
+go back to step one with the new longer sequence.  That's it. That's the entire algorithm. Let's do  
+an example walkthrough. We give our trained model  the starting prompt, a crane. So iteration one,  
+the initial idx is 512. First predict, we feed  512 into the model. It gives us scores for the  
+next word. Next sampler. Let's say it gives 8  a 40% probability and lifted 35%. We roll the  
+dice and get 8 which has an ID of 8. Finally  append. Our new sequence is now 5128. Okay.  
+On to iteration two. Our current sequence is a  crane 8. The current idx is 5128. So first we  
+predict. We feed this new longer sequence 5128  into the model. Now we sample. Having seen 8,  
+the model gives a massive 90% probability to  fish. We sample and get fish which has an ID of  
+21. And finally we append. Our sequence becomes  528 21. This loop continues one word at a time.  
+Now, let's connect this simple loop to the real  code from GPT2_min. py. Here's the code on screen.  
+We're looking at the generate method inside the  gpt2 class. Now, don't worry. We're going to   break this whole thing down piece by piece. First,  let's look at number one at torch.nowgrad. This is  
+a crucial optimization. It tells PyTorch not to  calculate gradients, saving massive amounts of  
+memory and computation. Remember, we're not  learning, we're just predicting. Number two,  
+context cropping. The model has a fixed context  window, the block size. If our generated sequence  
+gets too long, we must crop it to only feed in the  most recent tokens. This is the model's short-term  
+memory. Number three, predict. Look at this line.  Logits equals logits colus1 colon. This is the  
+key step. We throw away all predictions except  for the very last one. This single line connects  
+that wasteful training process to efficient  generation. Number four, sample f.softmax Softmax  
+converts our final scores into probabilities  and torch.multial performs the dice roll picking  
+one token based on those probabilities. And  finally number five append the newly sampled  
+next token is concatenated to the end of our idx  sequence preparing it for the next iteration of  
+the loop controlling the magic the creative  knobs. This is where you become the artist.  
+Let's look at this table. We've got two main  parameters. First, temperature. This rescales the  
+logits before softmax. A low temperature, anything  less than 1.0 makes high probability words even  
+more likely. The result is more predictable  conservative text. A high temperature greater  
+than 1.0 flattens the distribution, making rare  words more likely. The result is more random,  
+surprising, and creative text. Next, we have top  K. This truncates the distribution. It considers  
+only the K most likely tokens. So, if top K  equals 50, it throws away all but the 50 most  
+likely words and samples from that smaller  set. The result, this prevents very rare or  
+nonsensical words from being chosen, making  the output much more coherent. Conclusion,  
+the transformer has clicked. We have reached  the end of our 90-minute journey. We started  
+with this file, gpt2 min. py that seemed like a  dense, magical black box. We made a promise to  
+take that box apart piece by piece until the magic  dissolved into understandable elegant engineering.  
+And that is exactly what we did. We started with  token and positional embeddings. We built the  
+intuition for self attention and its causal mask.  We scaled it with multi head attention. We added  
+the thinking MLP and glued it all together with  residual connections and layer normalization to  
+form a block. Finally, we stacked the blocks,  added the language model head, and understood  
+training and generation. The GBT2_min py file  is no longer a mystery. Every at@ torch.nograd,  
+every view, every plus sign now has a purpose  and a story. The transformer has clicked.
