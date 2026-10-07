@@ -14,3 +14,4 @@ plots/02_bowl.png
 
 # Trained model saved by 29_training_loss.py
 checkpoints/
+plots/02_bowl_3d.png

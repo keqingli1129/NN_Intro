@@ -68,3 +68,15 @@ plt.title("Descending the 3D bowl (top view)")
 plt.savefig(PLOTS / "02_bowl.png", dpi=120)
 plt.close()
 print(f"Plot saved to {PLOTS / '02_bowl.png'}")
+
+# 3D plot: the same bowl seen from the side, with the walk drawn on its surface.
+fig = plt.figure(figsize=(7, 5.5))
+ax = fig.add_subplot(projection="3d", computed_zorder=False)   # 3D axes; draw in the order we say
+ax.plot_surface(g1s, g2s, f(g1s, g2s), cmap="viridis", alpha=0.6, zorder=1)   # the bowl itself, see-through
+ax.plot(t[:, 0], t[:, 1], f(t[:, 0], t[:, 1]), "o-", color="red", ms=3, zorder=2)  # path on top; height = error
+ax.set_xlabel("x1"); ax.set_ylabel("x2"); ax.set_zlabel("error")
+ax.set_title("Descending the 3D bowl")
+ax.view_init(elev=35, azim=-60)                         # camera angle: 35 deg up, rotated -60 deg
+plt.savefig(PLOTS / "02_bowl_3d.png", dpi=120)
+plt.close()
+print(f"Plot saved to {PLOTS / '02_bowl_3d.png'}")
