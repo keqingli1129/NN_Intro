@@ -7,11 +7,13 @@ Idea: you can't see the whole map, only the slope under your feet.
   3. Repeat until the ground is flat (slope ~ 0).
 """
 
-import matplotlib                      # plotting library we installed with `uv add matplotlib`
+import matplotlib  # plotting library we installed with `uv add matplotlib`
+
 matplotlib.use("Agg")                  # "Agg" = draw to image files instead of opening a window
-import matplotlib.pyplot as plt        # the plotting interface (plt.plot, plt.savefig, ...)
-import numpy as np                     # numerical arrays, used here only to draw smooth curves
-from pathlib import Path               # convenient, OS-independent file paths
+from pathlib import Path  # convenient, OS-independent file paths
+
+import matplotlib.pyplot as plt  # the plotting interface (plt.plot, plt.savefig, ...)
+import numpy as np  # numerical arrays, used here only to draw smooth curves
 
 PLOTS = Path(__file__).parent / "plots"  # folder next to this script where images will be saved
 PLOTS.mkdir(exist_ok=True)               # create it if it doesn't already exist

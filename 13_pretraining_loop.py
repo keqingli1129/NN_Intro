@@ -11,7 +11,7 @@ after token a". It only looks at the LAST token of the context. A real LLM uses 
 to look at the whole context (the next video), but the training loop is exactly the same.
 """
 
-import numpy as np                          # fast arrays: lets us process every example at once
+import numpy as np  # fast arrays: lets us process every example at once
 import tiktoken
 
 # ---------------------------------------------------------------------------

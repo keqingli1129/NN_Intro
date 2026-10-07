@@ -7,7 +7,9 @@ Bigger models just have longer chains, nicer activations, and task-specific loss
 """
 
 import math
-from tiny_net import DATA, INITIAL_WEIGHTS, forward, loss, backward, step, total_loss
+
+from tiny_net import DATA, INITIAL_WEIGHTS, backward, forward, loss, step, total_loss
+
 
 # ---------------------------------------------------------------------------
 # Popular activation functions (each one just needs a derivative we can compute).

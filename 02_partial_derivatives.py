@@ -9,11 +9,14 @@ Example bowl:  f(x1, x2) = x1^2 + 2*x2^2      (lowest point at (0, 0))
   df/dx2: freeze x1, so x1^2 is a constant   -> derivative 0 -> left with 4*x2
 """
 
+from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")                   # save images instead of opening windows
+
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
 
 PLOTS = Path(__file__).parent / "plots"
 PLOTS.mkdir(exist_ok=True)

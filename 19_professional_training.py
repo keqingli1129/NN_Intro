@@ -10,8 +10,7 @@ The from-scratch loop in lesson 17 becomes:
 """
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 
 torch.manual_seed(42)
 
